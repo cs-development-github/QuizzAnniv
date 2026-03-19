@@ -4,7 +4,7 @@ const {
   getCorrectAnswerIndex,
 } = require("../utils/questions");
 
-const QUESTION_TIME_LIMIT_MS = 15000;
+const QUESTION_TIME_LIMIT_MS = 20000;
 const BASE_POINTS = 100;
 const EVENT_ROOM_ID = "main-event";
 
