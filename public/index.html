@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz Room</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero-card">
+        <p class="eyebrow">Quiz multijoueur live</p>
+        <h1>Le premier pseudo cree la room. Les autres rejoignent.</h1>
+        <p class="hero-copy">
+          Une seule page d'accueil pour tout le monde. L'admin voit les pseudos arriver, les joueurs definissent leur pseudo et se mettent prets.
+        </p>
+
+        <div id="statusBanner" class="banner banner-status">Deconnecte</div>
+        <div id="errorBanner" class="banner banner-error hidden"></div>
+        <div id="sessionBanner" class="banner banner-session">Connexion a la partie...</div>
+      </section>
+
+      <section id="lobbyView" class="view-card">
+        <div class="section-heading">
+          <p class="section-kicker">Accueil</p>
+          <h2>Lobby de la partie</h2>
+        </div>
+
+        <div id="joinCard" class="stack-card">
+          <label class="field-label" for="nicknameInput">Pseudo</label>
+          <input id="nicknameInput" type="text" maxlength="20" placeholder="Entre ton pseudo" />
+          <button id="enterRoomButton" class="primary-button">Entrer dans la partie</button>
+          <p id="joinHint" class="helper-text">
+            Si aucune room n'existe encore, le premier joueur devient admin automatiquement.
+          </p>
+        </div>
+
+        <div id="lobbyCard" class="stack-card hidden">
+          <div class="meta-grid">
+            <div class="meta-box">
+              <span class="meta-label">Room</span>
+              <strong>Evenement live</strong>
+            </div>
+            <div class="meta-box">
+              <span class="meta-label">Toi</span>
+              <strong id="playerNameLabel">-</strong>
+            </div>
+            <div class="meta-box">
+              <span class="meta-label">Admin</span>
+              <strong id="hostLabel">-</strong>
+            </div>
+          </div>
+
+          <p id="lobbyStatusLabel" class="status-copy"></p>
+          <ul id="playersList" class="player-list"></ul>
+          <div class="action-row">
+            <button id="readyToggleButton" class="secondary-button hidden">Je suis pret</button>
+            <button id="startGameButton" class="primary-button hidden">Lancer la partie</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="gameView" class="view-card hidden">
+        <div id="questionSection" class="stack-card hidden">
+          <div class="question-head">
+            <div>
+              <p class="section-kicker">Questions</p>
+              <h2>Question <span id="questionIndexLabel">0</span>/<span id="totalQuestionsLabel">0</span></h2>
+            </div>
+            <div class="timer-pill">
+              <span>Temps</span>
+              <strong id="timerLabel">15</strong>
+            </div>
+          </div>
+
+          <p id="questionPrompt" class="question-prompt">En attente du lancement...</p>
+          <div id="answersContainer" class="answers-grid"></div>
+          <p id="answerStateLabel" class="status-copy"></p>
+          <p id="answerCountLabel" class="helper-text"></p>
+        </div>
+
+        <div id="resultSection" class="stack-card hidden">
+          <p class="section-kicker">Resultat</p>
+          <h2>Fin de la question</h2>
+          <p id="correctAnswerLabel" class="question-prompt"></p>
+          <h3>Classement provisoire</h3>
+          <ol id="leaderboardList" class="leaderboard-list"></ol>
+        </div>
+
+        <div id="endSection" class="stack-card hidden">
+          <p class="section-kicker">Final</p>
+          <h2>Podium et classement final</h2>
+
+          <div id="podiumContainer" class="podium-grid"></div>
+
+          <div id="restTableWrapper" class="table-card hidden">
+            <h3>Autres joueurs</h3>
+            <div class="table-scroll">
+              <table class="leaderboard-table">
+                <thead>
+                  <tr>
+                    <th>Place</th>
+                    <th>Pseudo</th>
+                    <th>Score</th>
+                  </tr>
+                </thead>
+                <tbody id="restLeaderboardBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>

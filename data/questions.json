@@ -1,0 +1,27 @@
+[
+  {
+    "prompt": "Quelle est la capitale de la France ?",
+    "answers": ["Paris", "Lyon", "Marseille", "Toulouse"],
+    "correctAnswerIndex": 0
+  },
+  {
+    "prompt": "Combien font 7 x 8 ?",
+    "answers": ["54", "56", "58", "64"],
+    "correctAnswerIndex": 1
+  },
+  {
+    "prompt": "Quelle planete est surnommee la planete rouge ?",
+    "answers": ["Venus", "Mars", "Jupiter", "Mercure"],
+    "correctAnswerIndex": 1
+  },
+  {
+    "prompt": "Dans quel ocean se trouve l'ile de La Reunion ?",
+    "answers": ["Atlantique", "Arctique", "Indien", "Pacifique"],
+    "correctAnswerIndex": 2
+  },
+  {
+    "prompt": "Quel langage est execute nativement dans un navigateur web moderne ?",
+    "answers": ["Python", "Java", "JavaScript", "C"],
+    "correctAnswerIndex": 2
+  }
+]

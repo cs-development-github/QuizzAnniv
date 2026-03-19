@@ -1,0 +1,380 @@
+:root {
+  --bg: #f6efe6;
+  --bg-deep: #f0e2d2;
+  --surface: rgba(255, 251, 246, 0.9);
+  --surface-strong: #fffaf4;
+  --line: #e4cfbb;
+  --text: #2d2117;
+  --muted: #6f5c4a;
+  --primary: #9a4f2f;
+  --primary-dark: #7f3f22;
+  --secondary: #efe2d0;
+  --danger: #992c22;
+  --shadow: 0 24px 70px rgba(86, 52, 24, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top left, rgba(255, 214, 184, 0.8), transparent 30%),
+    radial-gradient(circle at top right, rgba(215, 235, 216, 0.9), transparent 28%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
+}
+
+a,
+button,
+input {
+  font: inherit;
+}
+
+.shell {
+  width: min(960px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 24px 0 40px;
+}
+
+.hero-card,
+.view-card {
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(228, 207, 187, 0.9);
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+}
+
+.hero-card {
+  padding: 28px;
+  margin-bottom: 18px;
+}
+
+.view-card {
+  padding: 24px;
+}
+
+.eyebrow,
+.section-kicker,
+.meta-label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.76rem;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  line-height: 1.05;
+  max-width: 14ch;
+  margin-bottom: 12px;
+}
+
+h2 {
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  margin-bottom: 8px;
+}
+
+.hero-copy,
+.helper-text,
+.status-copy {
+  color: var(--muted);
+}
+
+.banner {
+  padding: 12px 14px;
+  border-radius: 16px;
+  margin-top: 12px;
+}
+
+.banner-status {
+  background: #f3e5d1;
+  color: #7a4b1d;
+}
+
+.banner-error {
+  background: #fbe3db;
+  color: var(--danger);
+}
+
+.banner-session {
+  background: #fff0cc;
+  color: #7d5a10;
+}
+
+.stack-card,
+.meta-box,
+.table-card {
+  border-radius: 24px;
+  border: 1px solid var(--line);
+  background: var(--surface-strong);
+}
+
+.stack-card {
+  padding: 22px;
+}
+
+.field-label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+input {
+  width: 100%;
+  min-height: 50px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  padding: 0 14px;
+  margin-bottom: 14px;
+  background: #fffdfa;
+}
+
+.primary-button,
+.secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-weight: 700;
+  transition: transform 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+}
+
+.primary-button {
+  color: #fff8f1;
+  background: var(--primary);
+}
+
+.secondary-button {
+  color: var(--text);
+  background: var(--secondary);
+  border-color: var(--line);
+}
+
+.primary-button:hover,
+.secondary-button:hover {
+  transform: translateY(-1px);
+}
+
+.primary-button:hover {
+  background: var(--primary-dark);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.meta-box {
+  padding: 16px;
+}
+
+.player-list,
+.leaderboard-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.player-list li,
+.leaderboard-list li {
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: #fff7ee;
+  border: 1px solid #edd6bf;
+}
+
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 18px 0 10px;
+}
+
+.question-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+}
+
+.timer-pill {
+  min-width: 96px;
+  text-align: center;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: var(--text);
+  color: #fff8f1;
+}
+
+.timer-pill strong {
+  display: block;
+  font-size: 1.9rem;
+}
+
+.question-prompt {
+  font-size: clamp(1.15rem, 2vw, 1.5rem);
+  line-height: 1.4;
+  margin: 22px 0;
+}
+
+.answers-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.answers-grid button {
+  min-height: 76px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: #fff5e8;
+  color: var(--text);
+  font-weight: 700;
+  padding: 14px;
+}
+
+.answers-grid button:hover {
+  background: #f6e2cc;
+}
+
+.podium-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  align-items: end;
+  margin-bottom: 20px;
+}
+
+.podium-card {
+  padding: 18px;
+  border-radius: 24px;
+  border: 1px solid var(--line);
+  text-align: center;
+  background: linear-gradient(180deg, #fff4df 0%, #fffaf4 100%);
+}
+
+.podium-card.rank-1 {
+  min-height: 240px;
+  background: linear-gradient(180deg, #ffe6ae 0%, #fff7e5 100%);
+}
+
+.podium-card.rank-2 {
+  min-height: 205px;
+}
+
+.podium-card.rank-3 {
+  min-height: 180px;
+}
+
+.podium-place {
+  display: inline-flex;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  margin-bottom: 12px;
+  background: rgba(45, 33, 23, 0.08);
+  font-weight: 700;
+}
+
+.podium-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.podium-score {
+  color: var(--muted);
+}
+
+.table-card {
+  padding: 18px;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.leaderboard-table th,
+.leaderboard-table td {
+  text-align: left;
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.hidden {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  .podium-grid,
+  .answers-grid,
+  .meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .question-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .timer-pill {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .shell {
+    width: min(100% - 20px, 100%);
+    padding-top: 14px;
+  }
+
+  .hero-card,
+  .view-card,
+  .stack-card {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .primary-button,
+  .secondary-button {
+    width: 100%;
+  }
+
+  .action-row {
+    flex-direction: column;
+  }
+}
