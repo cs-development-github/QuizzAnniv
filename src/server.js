@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 3000;
 const publicDir = path.join(__dirname, "..", "public");
 const contentSecurityPolicy = [
   "default-src 'self'",
-  "img-src 'self' https://api.dicebear.com data:",
+  "img-src 'self' https://api.dicebear.com data: blob:",
   "script-src 'self'",
   "style-src 'self'",
   "connect-src 'self' ws: wss:",
