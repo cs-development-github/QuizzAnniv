@@ -34,10 +34,11 @@ body {
   font-family: "Avenir Next", "Trebuchet MS", "Segoe UI", sans-serif;
   color: var(--text);
   background:
-    radial-gradient(circle at 12% 18%, rgba(255, 193, 116, 0.4), transparent 22%),
+    /* radial-gradient(circle at 12% 18%, rgba(255, 193, 116, 0.4), transparent 22%),
     radial-gradient(circle at 84% 16%, rgba(239, 111, 143, 0.2), transparent 22%),
     radial-gradient(circle at 76% 72%, rgba(15, 139, 141, 0.18), transparent 24%),
-    linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%); */
+    pink;
   position: relative;
   overflow-x: hidden;
 }
