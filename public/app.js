@@ -42,13 +42,13 @@ const resultSection = document.getElementById("resultSection");
 const endSection = document.getElementById("endSection");
 const questionIndexLabel = document.getElementById("questionIndexLabel");
 const totalQuestionsLabel = document.getElementById("totalQuestionsLabel");
+const timerPill = document.querySelector(".timer-pill");
 const timerLabel = document.getElementById("timerLabel");
 const questionPrompt = document.getElementById("questionPrompt");
 const answersContainer = document.getElementById("answersContainer");
 const answerStateLabel = document.getElementById("answerStateLabel");
 const answerCountLabel = document.getElementById("answerCountLabel");
 const correctAnswerLabel = document.getElementById("correctAnswerLabel");
-const leaderboardList = document.getElementById("leaderboardList");
 const podiumContainer = document.getElementById("podiumContainer");
 const restTableWrapper = document.getElementById("restTableWrapper");
 const restLeaderboardBody = document.getElementById("restLeaderboardBody");
@@ -119,6 +119,7 @@ function resetGamePanels() {
   questionSection.classList.add("hidden");
   resultSection.classList.add("hidden");
   endSection.classList.add("hidden");
+  timerPill.classList.remove("timer-pill-danger");
 }
 
 function renderShell() {
@@ -204,16 +205,6 @@ function renderLobby() {
     : "Je suis pret";
 }
 
-function renderLeaderboard(targetElement, leaderboard) {
-  targetElement.innerHTML = "";
-
-  leaderboard.forEach((entry) => {
-    const item = document.createElement("li");
-    item.textContent = `#${entry.rank} - ${entry.name} - ${entry.score} pts`;
-    targetElement.appendChild(item);
-  });
-}
-
 function renderFinalLeaderboard(leaderboard) {
   podiumContainer.innerHTML = "";
   restLeaderboardBody.innerHTML = "";
@@ -265,7 +256,10 @@ function startCountdown(endsAt) {
 
   function updateTimer() {
     const remainingMs = Math.max(0, endsAt - Date.now());
-    timerLabel.textContent = String(Math.ceil(remainingMs / 1000));
+    const remainingSeconds = Math.ceil(remainingMs / 1000);
+
+    timerLabel.textContent = String(remainingSeconds);
+    timerPill.classList.toggle("timer-pill-danger", remainingSeconds <= 5 && remainingMs > 0);
   }
 
   updateTimer();
@@ -437,7 +431,6 @@ socket.on("question:result", (payload) => {
     correctAnswerLabel.textContent = `Bonne reponse : ${state.currentQuestion.answers[payload.correctAnswerIndex]}`;
   }
 
-  renderLeaderboard(leaderboardList, payload.leaderboard);
   renderShell();
 });
 
