@@ -15,9 +15,7 @@
           Une seule page d'accueil pour tout le monde. L'admin voit les pseudos arriver, les joueurs definissent leur pseudo et se mettent prets.
         </p>
 
-        <div id="statusBanner" class="banner banner-status">Deconnecte</div>
         <div id="errorBanner" class="banner banner-error hidden"></div>
-        <div id="sessionBanner" class="banner banner-session">Connexion a la partie...</div>
       </section>
 
       <section id="lobbyView" class="view-card">
@@ -27,31 +25,26 @@
         </div>
 
         <div id="joinCard" class="stack-card">
-          <label class="field-label" for="nicknameInput">Pseudo</label>
+          <label class="field-label" for="nicknameInput">Choisis un pseudo</label>
           <input id="nicknameInput" type="text" maxlength="20" placeholder="Entre ton pseudo" />
           <button id="enterRoomButton" class="primary-button">Entrer dans la partie</button>
-          <p id="joinHint" class="helper-text">
-            Si aucune room n'existe encore, le premier joueur devient admin automatiquement.
-          </p>
         </div>
 
         <div id="lobbyCard" class="stack-card hidden">
-          <div class="meta-grid">
-            <div class="meta-box">
-              <span class="meta-label">Room</span>
-              <strong>Evenement live</strong>
+          <div class="avatar-dock">
+            <div>
+              <p class="section-kicker">Avatar</p>
+              <h3 id="playerNameLabel">-</h3>
+              <p class="helper-text">Selection visuelle en preparation.</p>
             </div>
-            <div class="meta-box">
-              <span class="meta-label">Toi</span>
-              <strong id="playerNameLabel">-</strong>
-            </div>
-            <div class="meta-box">
-              <span class="meta-label">Admin</span>
-              <strong id="hostLabel">-</strong>
+            <div class="avatar-options" aria-label="Selection d avatar a venir">
+              <button type="button" class="avatar-option avatar-option-active" disabled>A</button>
+              <button type="button" class="avatar-option" disabled>B</button>
+              <button type="button" class="avatar-option" disabled>C</button>
+              <button type="button" class="avatar-option" disabled>D</button>
             </div>
           </div>
 
-          <p id="lobbyStatusLabel" class="status-copy"></p>
           <ul id="playersList" class="player-list"></ul>
           <div class="action-row">
             <button id="readyToggleButton" class="secondary-button hidden">Je suis pret</button>

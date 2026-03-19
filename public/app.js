@@ -14,9 +14,7 @@ const state = {
   roomStatus: "idle",
 };
 
-const statusBanner = document.getElementById("statusBanner");
 const errorBanner = document.getElementById("errorBanner");
-const sessionBanner = document.getElementById("sessionBanner");
 const heroTitle = document.getElementById("heroTitle");
 const heroCopy = document.getElementById("heroCopy");
 
@@ -28,12 +26,9 @@ const lobbyCard = document.getElementById("lobbyCard");
 const nicknameInput = document.getElementById("nicknameInput");
 const enterRoomButton = document.getElementById("enterRoomButton");
 const playerNameLabel = document.getElementById("playerNameLabel");
-const hostLabel = document.getElementById("hostLabel");
 const playersList = document.getElementById("playersList");
 const readyToggleButton = document.getElementById("readyToggleButton");
 const startGameButton = document.getElementById("startGameButton");
-const lobbyStatusLabel = document.getElementById("lobbyStatusLabel");
-const joinHint = document.getElementById("joinHint");
 
 const questionSection = document.getElementById("questionSection");
 const resultSection = document.getElementById("resultSection");
@@ -76,35 +71,22 @@ function resetGamePanels() {
 }
 
 function renderShell() {
-  const gameActive = state.roomStatus === "question" || state.roomStatus === "result" || state.roomStatus === "finished";
+  const gameActive =
+    state.roomStatus === "question" ||
+    state.roomStatus === "result" ||
+    state.roomStatus === "finished";
+
   lobbyView.classList.toggle("hidden", gameActive);
   gameView.classList.toggle("hidden", !gameActive);
 }
 
-function renderSessionBanner() {
-  if (!state.sessionExists) {
-    sessionBanner.textContent = "Aucune room ouverte. Le premier pseudo qui entre devient admin et cree la partie.";
-    joinHint.textContent = "Si aucune room n'existe encore, le premier joueur devient admin automatiquement.";
-    return;
-  }
-
-  if (state.roomStatus === "question" || state.roomStatus === "result" || state.roomStatus === "finished") {
-    sessionBanner.textContent = "La partie est en cours ou terminee. Les joueurs deja connectes voient l'ecran de jeu.";
-    joinHint.textContent = "Les nouvelles connexions ne peuvent plus rejoindre une partie deja lancee.";
-    return;
-  }
-
-  const host = state.players.find((player) => player.id === state.hostId);
-  sessionBanner.textContent = `Room ouverte${host ? ` par ${host.name}` : ""}. Les nouveaux joueurs rejoignent automatiquement en choisissant leur pseudo.`;
-  joinHint.textContent = "Entre simplement ton pseudo pour rejoindre la room, puis mets-toi pret.";
-}
-
 function renderHeroIntro() {
-  if (!state.sessionExists || isHost()) {
+  if (!state.sessionExists) {
     heroTitle.classList.remove("hidden");
     heroCopy.classList.remove("hidden");
     heroTitle.textContent = "Le premier pseudo cree la room. Les autres rejoignent.";
-    heroCopy.textContent = "Une seule page d'accueil pour tout le monde. L'admin voit les pseudos arriver, les joueurs definissent leur pseudo et se mettent prets.";
+    heroCopy.textContent =
+      "Une seule page d'accueil pour tout le monde. L'admin voit les pseudos arriver, les joueurs definissent leur pseudo et se mettent prets.";
     return;
   }
 
@@ -117,25 +99,33 @@ function renderPlayers() {
 
   state.players.forEach((player) => {
     const item = document.createElement("li");
-    const tags = [];
-
-    if (player.id === state.playerId) {
-      tags.push("toi");
-    }
+    const initial = (player.name || "?").charAt(0).toUpperCase();
+    const labels = [];
 
     if (player.id === state.hostId) {
-      tags.push("admin");
+      labels.push("admin");
+    } else {
+      labels.push(player.isReady ? "pret" : "en attente");
     }
 
-    tags.push(player.isReady ? "pret" : "en attente");
-    item.textContent = `${player.name} • ${player.score} pts • ${tags.join(" • ")}`;
+    if (player.id === state.playerId) {
+      labels.push("toi");
+    }
+
+    item.className = "player-row";
+    item.innerHTML = `
+      <div class="player-avatar" aria-hidden="true">${initial}</div>
+      <div class="player-main">
+        <strong>${player.name}</strong>
+        <span class="player-meta">${labels.join(" - ")}</span>
+      </div>
+    `;
     playersList.appendChild(item);
   });
 }
 
 function renderLobby() {
   const currentPlayer = getCurrentPlayer();
-  const host = state.players.find((player) => player.id === state.hostId);
   const joined = Boolean(currentPlayer);
 
   joinCard.classList.toggle("hidden", joined);
@@ -147,24 +137,19 @@ function renderLobby() {
   }
 
   playerNameLabel.textContent = currentPlayer.name;
-  hostLabel.textContent = host ? host.name : "-";
   renderPlayers();
 
   readyToggleButton.classList.toggle("hidden", isHost());
   startGameButton.classList.toggle("hidden", !isHost());
 
   if (isHost()) {
-    lobbyStatusLabel.textContent = state.canStart
-      ? "Tout le monde est pret. Tu peux lancer la partie."
-      : "Tu es admin. Attends que tous les joueurs soient prets pour lancer.";
     startGameButton.disabled = !state.canStart;
     return;
   }
 
-  readyToggleButton.textContent = currentPlayer.isReady ? "Je ne suis plus pret" : "Je suis pret";
-  lobbyStatusLabel.textContent = currentPlayer.isReady
-    ? "Tu es pret. L'admin peut lancer la partie quand tout le monde est pret."
-    : "Mets-toi pret pour permettre le lancement.";
+  readyToggleButton.textContent = currentPlayer.isReady
+    ? "Je ne suis plus pret"
+    : "Je suis pret";
 }
 
 function renderLeaderboard(targetElement, leaderboard) {
@@ -172,7 +157,7 @@ function renderLeaderboard(targetElement, leaderboard) {
 
   leaderboard.forEach((entry) => {
     const item = document.createElement("li");
-    item.textContent = `#${entry.rank} • ${entry.name} • ${entry.score} pts`;
+    item.textContent = `#${entry.rank} - ${entry.name} - ${entry.score} pts`;
     targetElement.appendChild(item);
   });
 }
@@ -298,13 +283,9 @@ readyToggleButton.addEventListener("click", () => {
   socket.emit("player:ready", { isReady: !currentPlayer.isReady });
 });
 
-socket.on("connect", () => {
-  statusBanner.textContent = "Connecte";
-});
+socket.on("connect", () => {});
 
-socket.on("disconnect", () => {
-  statusBanner.textContent = "Deconnecte";
-});
+socket.on("disconnect", () => {});
 
 socket.on("error:message", (payload) => {
   showError(payload.message);
@@ -332,7 +313,6 @@ socket.on("room:state", (payload) => {
 
   renderShell();
   renderHeroIntro();
-  renderSessionBanner();
   renderLobby();
 });
 
@@ -350,7 +330,6 @@ socket.on("room:closed", () => {
   resetGamePanels();
   renderShell();
   renderHeroIntro();
-  renderSessionBanner();
   renderLobby();
 });
 
@@ -361,7 +340,6 @@ socket.on("session:status", (payload) => {
 
   renderShell();
   renderHeroIntro();
-  renderSessionBanner();
   renderLobby();
 });
 
@@ -410,5 +388,4 @@ socket.on("game:end", (payload) => {
 
 renderShell();
 renderHeroIntro();
-renderSessionBanner();
 renderLobby();
