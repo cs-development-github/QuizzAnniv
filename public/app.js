@@ -25,6 +25,9 @@ const joinCard = document.getElementById("joinCard");
 const lobbyCard = document.getElementById("lobbyCard");
 const nicknameInput = document.getElementById("nicknameInput");
 const enterRoomButton = document.getElementById("enterRoomButton");
+const adminSummary = document.getElementById("adminSummary");
+const connectedCountLabel = document.getElementById("connectedCountLabel");
+const readyCountLabel = document.getElementById("readyCountLabel");
 const playerNameLabel = document.getElementById("playerNameLabel");
 const playersList = document.getElementById("playersList");
 const readyToggleButton = document.getElementById("readyToggleButton");
@@ -127,6 +130,7 @@ function renderPlayers() {
 function renderLobby() {
   const currentPlayer = getCurrentPlayer();
   const joined = Boolean(currentPlayer);
+  const readyPlayers = state.players.filter((player) => player.isReady).length;
 
   joinCard.classList.toggle("hidden", joined);
   lobbyCard.classList.toggle("hidden", !joined);
@@ -138,6 +142,10 @@ function renderLobby() {
 
   playerNameLabel.textContent = currentPlayer.name;
   renderPlayers();
+
+  adminSummary.classList.toggle("hidden", !isHost());
+  connectedCountLabel.textContent = String(state.players.length);
+  readyCountLabel.textContent = `${readyPlayers}/${state.players.length}`;
 
   readyToggleButton.classList.toggle("hidden", isHost());
   startGameButton.classList.toggle("hidden", !isHost());

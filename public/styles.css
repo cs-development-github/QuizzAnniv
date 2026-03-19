@@ -193,6 +193,35 @@ button:disabled {
   background: #fff7ee;
 }
 
+.admin-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.admin-summary-card {
+  padding: 18px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #f9e6d5 0%, #fff8f1 100%);
+  border: 1px solid #e8c9ad;
+}
+
+.admin-summary-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.76rem;
+}
+
+.admin-summary-card strong {
+  display: block;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  line-height: 1;
+}
+
 .avatar-options {
   display: flex;
   flex-wrap: wrap;
@@ -391,6 +420,7 @@ button:disabled {
 }
 
 @media (max-width: 860px) {
+  .admin-summary,
   .podium-grid,
   .answers-grid {
     grid-template-columns: 1fr;
