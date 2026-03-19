@@ -3,28 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Quiz Room</title>
+    <title>Quiz Anniversaire</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
+    <div class="page-glow page-glow-left" aria-hidden="true"></div>
+    <div class="page-glow page-glow-right" aria-hidden="true"></div>
     <main class="shell">
-      <section class="hero-card">
-        <h1 id="heroTitle">Le premier pseudo cree la room. Les autres rejoignent.</h1>
-        <p id="heroCopy" class="hero-copy">
-          Une seule page d'accueil pour tout le monde. L'admin voit les pseudos arriver, les joueurs definissent leur pseudo et se mettent prets.
-        </p>
-
-        <div id="errorBanner" class="banner banner-error hidden"></div>
-      </section>
-
       <section id="lobbyView" class="view-card">
         <div class="section-heading">
           <p class="section-kicker">Accueil</p>
-          <h2>Lobby de la partie</h2>
+          <h2>Lobby de la fete</h2>
+          <p class="section-copy">On rejoint la salle, on se met pret, puis on lance la partie.</p>
         </div>
 
+        <div id="errorBanner" class="banner banner-error hidden"></div>
+
         <div id="joinCard" class="stack-card">
-          <label class="field-label" for="nicknameInput">Choisis un pseudo</label>
+          <label class="field-label" for="nicknameInput">Choisis ton blaze de la soiree</label>
           <input id="nicknameInput" type="text" maxlength="20" placeholder="Entre ton pseudo" />
           <button id="enterRoomButton" class="primary-button">Entrer dans la partie</button>
         </div>
@@ -32,20 +28,20 @@
         <div id="lobbyCard" class="stack-card hidden">
           <div id="adminSummary" class="admin-summary hidden">
             <div class="admin-summary-card">
-              <span class="admin-summary-label">Connectes</span>
+              <span class="admin-summary-label">Invites connectes</span>
               <strong id="connectedCountLabel">0</strong>
             </div>
             <div class="admin-summary-card">
-              <span class="admin-summary-label">Prets</span>
+              <span class="admin-summary-label">Joueurs prets</span>
               <strong id="readyCountLabel">0</strong>
             </div>
           </div>
 
           <div class="avatar-dock">
             <div>
-              <p class="section-kicker">Avatar</p>
+              <p class="section-kicker">Carte joueur</p>
               <h3 id="playerNameLabel">-</h3>
-              <p class="helper-text">Selection visuelle en preparation.</p>
+              <p class="helper-text">Installe-toi dans le lobby pendant que tout le monde arrive.</p>
             </div>
             <div class="avatar-options" aria-label="Selection d avatar a venir">
               <button type="button" class="avatar-option avatar-option-active" disabled>A</button>

@@ -15,8 +15,6 @@ const state = {
 };
 
 const errorBanner = document.getElementById("errorBanner");
-const heroTitle = document.getElementById("heroTitle");
-const heroCopy = document.getElementById("heroCopy");
 
 const lobbyView = document.getElementById("lobbyView");
 const gameView = document.getElementById("gameView");
@@ -83,36 +81,26 @@ function renderShell() {
   gameView.classList.toggle("hidden", !gameActive);
 }
 
-function renderHeroIntro() {
-  if (!state.sessionExists) {
-    heroTitle.classList.remove("hidden");
-    heroCopy.classList.remove("hidden");
-    heroTitle.textContent = "Le premier pseudo cree la room. Les autres rejoignent.";
-    heroCopy.textContent =
-      "Une seule page d'accueil pour tout le monde. L'admin voit les pseudos arriver, les joueurs definissent leur pseudo et se mettent prets.";
-    return;
-  }
-
-  heroTitle.classList.add("hidden");
-  heroCopy.classList.add("hidden");
-}
-
 function renderPlayers() {
   playersList.innerHTML = "";
 
   state.players.forEach((player) => {
     const item = document.createElement("li");
     const initial = (player.name || "?").charAt(0).toUpperCase();
-    const labels = [];
+    const badges = [];
 
     if (player.id === state.hostId) {
-      labels.push("admin");
+      badges.push('<span class="player-status player-status-host">admin</span>');
     } else {
-      labels.push(player.isReady ? "pret" : "en attente");
+      badges.push(
+        player.isReady
+          ? '<span class="player-status player-status-ready">pret</span>'
+          : '<span class="player-status player-status-waiting">en attente</span>'
+      );
     }
 
     if (player.id === state.playerId) {
-      labels.push("toi");
+      badges.push('<span class="player-status player-status-self">toi</span>');
     }
 
     item.className = "player-row";
@@ -120,7 +108,7 @@ function renderPlayers() {
       <div class="player-avatar" aria-hidden="true">${initial}</div>
       <div class="player-main">
         <strong>${player.name}</strong>
-        <span class="player-meta">${labels.join(" - ")}</span>
+        <div class="player-status-row">${badges.join("")}</div>
       </div>
     `;
     playersList.appendChild(item);
@@ -243,7 +231,7 @@ function renderQuestion(questionIndex, totalQuestions, question, endsAt) {
       }
 
       state.hasAnswered = true;
-      answerStateLabel.textContent = "Reponse envoyee.";
+      answerStateLabel.textContent = "Reponse envoyee. Suspense...";
 
       Array.from(answersContainer.querySelectorAll("button")).forEach((entry) => {
         entry.disabled = true;
@@ -320,7 +308,6 @@ socket.on("room:state", (payload) => {
   state.roomStatus = payload.status;
 
   renderShell();
-  renderHeroIntro();
   renderLobby();
 });
 
@@ -337,7 +324,6 @@ socket.on("room:closed", () => {
   window.clearInterval(state.timerInterval);
   resetGamePanels();
   renderShell();
-  renderHeroIntro();
   renderLobby();
 });
 
@@ -347,7 +333,6 @@ socket.on("session:status", (payload) => {
   state.roomStatus = payload.status;
 
   renderShell();
-  renderHeroIntro();
   renderLobby();
 });
 
@@ -364,7 +349,7 @@ socket.on("question:send", (payload) => {
 socket.on("answer:submitted", (payload) => {
   answerStateLabel.textContent = payload.isCorrect
     ? `Bonne reponse ! +${payload.pointsEarned} points`
-    : "Reponse envoyee.";
+    : "Reponse envoyee. Verdict a la fin du chrono.";
 });
 
 socket.on("answer:count", (payload) => {
@@ -395,5 +380,4 @@ socket.on("game:end", (payload) => {
 });
 
 renderShell();
-renderHeroIntro();
 renderLobby();
