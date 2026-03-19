@@ -12,6 +12,13 @@ const io = new Server(server);
 const HOST = process.env.HOST || "0.0.0.0";
 const PORT = process.env.PORT || 3000;
 const publicDir = path.join(__dirname, "..", "public");
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  "img-src 'self' https://api.dicebear.com data:",
+  "script-src 'self'",
+  "style-src 'self'",
+  "connect-src 'self' ws: wss:",
+].join("; ");
 
 function getNetworkUrls(port) {
   const interfaces = os.networkInterfaces();
@@ -29,6 +36,11 @@ function getNetworkUrls(port) {
 
   return urls;
 }
+
+app.use((_, res, next) => {
+  res.setHeader("Content-Security-Policy", contentSecurityPolicy);
+  next();
+});
 
 app.use(express.static(publicDir));
 
