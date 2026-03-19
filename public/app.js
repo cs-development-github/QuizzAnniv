@@ -283,6 +283,7 @@ function renderQuestion(questionIndex, totalQuestions, question, endsAt) {
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = answer;
+    button.classList.add(`answer-choice-${index + 1}`);
     button.addEventListener("click", () => {
       if (state.hasAnswered) {
         return;

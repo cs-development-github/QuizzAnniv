@@ -682,18 +682,39 @@ button:disabled {
 .answers-grid button {
   min-height: 84px;
   border-radius: 22px;
-  border: 1px solid rgba(196, 79, 59, 0.14);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 240, 228, 0.95));
-  color: var(--text);
+  border: 1px solid transparent;
+  color: #fffdf7;
   font-weight: 800;
   padding: 16px;
-  box-shadow: 0 12px 24px rgba(126, 57, 36, 0.08);
+  box-shadow: 0 12px 24px rgba(126, 57, 36, 0.12);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
 }
 
 .answers-grid button:hover {
-  background:
-    linear-gradient(180deg, rgba(255, 252, 247, 1), rgba(255, 232, 208, 1));
+  transform: translateY(-2px);
+  box-shadow: 0 16px 28px rgba(126, 57, 36, 0.16);
+  filter: brightness(1.04);
+}
+
+.answers-grid button.answer-choice-1 {
+  background: linear-gradient(180deg, #ff6b6b 0%, #d92d20 100%);
+  border-color: rgba(122, 14, 18, 0.24);
+}
+
+.answers-grid button.answer-choice-2 {
+  background: linear-gradient(180deg, #57a7ff 0%, #155eef 100%);
+  border-color: rgba(11, 61, 145, 0.24);
+}
+
+.answers-grid button.answer-choice-3 {
+  background: linear-gradient(180deg, #48d597 0%, #0f9f62 100%);
+  border-color: rgba(11, 93, 58, 0.24);
+}
+
+.answers-grid button.answer-choice-4 {
+  background: linear-gradient(180deg, #ffd85c 0%, #f0b100 100%);
+  border-color: rgba(135, 92, 0, 0.24);
+  color: #503300;
 }
 
 .podium-grid {

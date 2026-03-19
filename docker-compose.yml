@@ -1,0 +1,19 @@
+services:
+  quiznatane:
+    container_name: quiznatane
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "const http=require('http');const req=http.get('http://127.0.0.1:3000/health',res=>process.exit(res.statusCode===200?0:1));req.on('error',()=>process.exit(1));"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
