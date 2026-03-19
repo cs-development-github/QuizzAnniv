@@ -17,6 +17,8 @@ const state = {
 const statusBanner = document.getElementById("statusBanner");
 const errorBanner = document.getElementById("errorBanner");
 const sessionBanner = document.getElementById("sessionBanner");
+const heroTitle = document.getElementById("heroTitle");
+const heroCopy = document.getElementById("heroCopy");
 
 const lobbyView = document.getElementById("lobbyView");
 const gameView = document.getElementById("gameView");
@@ -95,6 +97,19 @@ function renderSessionBanner() {
   const host = state.players.find((player) => player.id === state.hostId);
   sessionBanner.textContent = `Room ouverte${host ? ` par ${host.name}` : ""}. Les nouveaux joueurs rejoignent automatiquement en choisissant leur pseudo.`;
   joinHint.textContent = "Entre simplement ton pseudo pour rejoindre la room, puis mets-toi pret.";
+}
+
+function renderHeroIntro() {
+  if (!state.sessionExists || isHost()) {
+    heroTitle.classList.remove("hidden");
+    heroCopy.classList.remove("hidden");
+    heroTitle.textContent = "Le premier pseudo cree la room. Les autres rejoignent.";
+    heroCopy.textContent = "Une seule page d'accueil pour tout le monde. L'admin voit les pseudos arriver, les joueurs definissent leur pseudo et se mettent prets.";
+    return;
+  }
+
+  heroTitle.classList.add("hidden");
+  heroCopy.classList.add("hidden");
 }
 
 function renderPlayers() {
@@ -316,6 +331,7 @@ socket.on("room:state", (payload) => {
   state.roomStatus = payload.status;
 
   renderShell();
+  renderHeroIntro();
   renderSessionBanner();
   renderLobby();
 });
@@ -333,6 +349,7 @@ socket.on("room:closed", () => {
   window.clearInterval(state.timerInterval);
   resetGamePanels();
   renderShell();
+  renderHeroIntro();
   renderSessionBanner();
   renderLobby();
 });
@@ -343,6 +360,7 @@ socket.on("session:status", (payload) => {
   state.roomStatus = payload.status;
 
   renderShell();
+  renderHeroIntro();
   renderSessionBanner();
   renderLobby();
 });
@@ -391,5 +409,6 @@ socket.on("game:end", (payload) => {
 });
 
 renderShell();
+renderHeroIntro();
 renderSessionBanner();
 renderLobby();
