@@ -7,18 +7,20 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; img-src 'self' https://api.dicebear.com data: blob:; script-src 'self'; style-src 'self'; connect-src 'self' ws: wss:;"
     />
-    <title>Quiz Anniversaire</title>
+    <title>Room | Quiz Natane</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <div class="page-glow page-glow-left" aria-hidden="true"></div>
     <div class="page-glow page-glow-right" aria-hidden="true"></div>
-    <main class="shell">
+    <main class="shell room-shell">
       <section id="lobbyView" class="view-card">
         <div class="section-heading">
-          <p class="section-kicker">Accueil</p>
-          <h2>Anniversaire de Natane</h2>
-          <p class="section-copy">Qui connait le mieux Natane ?</p>
+          <p class="section-kicker">Salle d'attente</p>
+          <h1>Rejoins la room <span id="roomIdLabel">-</span></h1>
+          <p id="roomStatusCopy" class="section-copy">
+            Choisis ton avatar, entre ton pseudo puis passe en mode pret.
+          </p>
         </div>
 
         <div id="errorBanner" class="banner banner-error hidden"></div>
@@ -26,40 +28,43 @@
         <div id="joinCard" class="stack-card">
           <label class="field-label" for="nicknameInput">Choisis ton pseudo :</label>
           <input id="nicknameInput" type="text" maxlength="20" placeholder="Entre ton pseudo" />
-          <button id="enterRoomButton" class="primary-button">Entrer dans la partie</button>
+          <button id="enterRoomButton" class="primary-button">Entrer dans la room</button>
         </div>
 
         <div id="lobbyCard" class="stack-card hidden">
-          <div id="adminSummary" class="admin-summary hidden">
-            <div class="admin-summary-card">
-              <span class="admin-summary-label">Invites connectes</span>
-              <strong id="connectedCountLabel">0</strong>
-            </div>
-            <div class="admin-summary-card">
-              <span class="admin-summary-label">Joueurs prets</span>
-              <strong id="readyCountLabel">0</strong>
-            </div>
-          </div>
-
-          <div class="avatar-dock">
-            <div class="avatar-copy">
-              <p class="section-kicker">Carte joueur</p>
-              <h3 id="playerNameLabel">-</h3>
-            </div>
-            <div class="avatar-station">
-              <div class="player-avatar player-avatar-large">
-                <img id="selectedAvatarImage" alt="" />
+          <div class="waiting-layout">
+            <div class="avatar-dock">
+              <div class="avatar-copy">
+                <p class="section-kicker">Carte joueur</p>
+                <h3 id="playerNameLabel">-</h3>
+                <p class="helper-text">Un avatar fun, un pseudo clair, puis un clic sur pret.</p>
               </div>
-              <div class="avatar-actions">
-                <button id="shuffleAvatarsButton" type="button" class="secondary-button">Relancer</button>
+              <div class="avatar-station">
+                <div class="player-avatar player-avatar-large">
+                  <img id="selectedAvatarImage" alt="" />
+                </div>
+                <div class="avatar-actions">
+                  <button id="shuffleAvatarsButton" type="button" class="secondary-button">
+                    Relancer
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
 
-          <ul id="playersList" class="player-list"></ul>
-          <div class="action-row">
-            <button id="readyToggleButton" class="secondary-button hidden">Je suis pret</button>
-            <button id="startGameButton" class="primary-button hidden">Lancer la partie</button>
+            <div class="waiting-sidebar">
+              <div class="admin-summary single-summary">
+                <div class="admin-summary-card">
+                  <span class="admin-summary-label">Joueurs prets</span>
+                  <strong id="readyCountLabel">0/0</strong>
+                </div>
+              </div>
+
+              <ul id="playersList" class="player-list"></ul>
+
+              <div class="action-row">
+                <button id="readyToggleButton" class="primary-button">Je suis pret</button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -115,6 +120,6 @@
     </main>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/app.js"></script>
+    <script src="/room.js"></script>
   </body>
 </html>

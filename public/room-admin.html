@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' https://api.dicebear.com data: blob:; script-src 'self'; style-src 'self'; connect-src 'self' ws: wss:;"
+    />
+    <title>Room Admin | Quiz Natane</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-glow page-glow-left" aria-hidden="true"></div>
+    <div class="page-glow page-glow-right" aria-hidden="true"></div>
+    <main class="shell admin-shell">
+      <section class="view-card">
+        <div class="section-heading">
+          <p class="section-kicker">Room Admin</p>
+          <h1>Superviser et fermer les rooms actives</h1>
+          <p class="section-copy">
+            Cette page sert de tour de controle pour voir les rooms ouvertes et les
+            couper proprement si besoin.
+          </p>
+        </div>
+
+        <div id="errorBanner" class="banner banner-error hidden"></div>
+
+        <section class="stack-card">
+          <div class="action-row room-admin-toolbar">
+            <button id="refreshRoomsButton" class="secondary-button">Actualiser</button>
+          </div>
+
+          <div id="emptyState" class="empty-state hidden">
+            <p class="section-kicker">Aucune room</p>
+            <h3>Rien d'ouvert pour le moment</h3>
+            <p class="helper-text">Les rooms actives apparaitront ici automatiquement.</p>
+          </div>
+
+          <div id="roomsGrid" class="rooms-grid"></div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/room-admin.js"></script>
+  </body>
+</html>

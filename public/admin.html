@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' https://api.dicebear.com data: blob:; script-src 'self'; style-src 'self'; connect-src 'self' ws: wss:;"
+    />
+    <title>Admin | Quiz Natane</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-glow page-glow-left" aria-hidden="true"></div>
+    <div class="page-glow page-glow-right" aria-hidden="true"></div>
+    <main class="shell admin-shell">
+      <section class="view-card">
+        <div class="section-heading">
+          <p class="section-kicker">Admin</p>
+          <h1>Creer une room et accueillir les joueurs</h1>
+          <p class="section-copy">
+            Depuis ici, tu ouvres la salle, tu affiches le QR code et tu surveilles les
+            arrivées avant de lancer la partie.
+          </p>
+        </div>
+
+        <div id="errorBanner" class="banner banner-error hidden"></div>
+
+        <div class="admin-layout">
+          <section class="stack-card">
+            <div id="createRoomCard">
+              <p class="section-kicker">Ouverture</p>
+              <h2>Nouvelle room</h2>
+              <p class="section-copy">
+                Cree une salle puis affiche le QR code aux invites.
+              </p>
+              <button id="createRoomButton" class="primary-button">Creer une room</button>
+            </div>
+
+            <div id="roomLiveCard" class="hidden">
+              <div class="room-badge-row">
+                <span class="room-badge">Room <strong id="roomIdLabel">-</strong></span>
+                <span class="room-badge room-badge-accent" id="roomStatusLabel">Lobby</span>
+              </div>
+
+              <div class="qr-block">
+                <img id="qrCodeImage" class="qr-code" alt="QR code de la room" />
+                <div class="qr-copy">
+                  <p class="section-kicker">Scan & Join</p>
+                  <h3>Salle d'attente des joueurs</h3>
+                  <p class="helper-text">
+                    Les invites scannent, choisissent leur avatar, entrent leur pseudo puis
+                    se mettent prets.
+                  </p>
+                  <a id="joinUrlLink" class="link-button" target="_blank" rel="noreferrer">
+                    Ouvrir le lien de la room
+                  </a>
+                </div>
+              </div>
+
+              <div class="admin-summary">
+                <div class="admin-summary-card">
+                  <span class="admin-summary-label">Joueurs connectes</span>
+                  <strong id="connectedCountLabel">0</strong>
+                </div>
+                <div class="admin-summary-card">
+                  <span class="admin-summary-label">Joueurs prets</span>
+                  <strong id="readyCountLabel">0/0</strong>
+                </div>
+              </div>
+
+              <div class="action-row">
+                <button id="startGameButton" class="primary-button" disabled>
+                  Lancer la partie
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <aside class="stack-card">
+            <p class="section-kicker">Participants</p>
+            <h2>Vue admin</h2>
+            <p id="participantHint" class="helper-text">
+              Les joueurs qui rejoignent la room apparaitront ici en direct.
+            </p>
+            <ul id="playersList" class="player-list"></ul>
+          </aside>
+        </div>
+      </section>
+
+      <section id="gameView" class="view-card hidden">
+        <div id="questionSection" class="stack-card hidden">
+          <div class="question-head">
+            <div>
+              <p class="section-kicker">Questions</p>
+              <h2>Question <span id="questionIndexLabel">0</span>/<span id="totalQuestionsLabel">0</span></h2>
+            </div>
+            <div class="timer-pill">
+              <span>Temps</span>
+              <strong id="timerLabel">20</strong>
+            </div>
+          </div>
+
+          <p id="questionPrompt" class="question-prompt">En attente du lancement...</p>
+          <p id="answerCountLabel" class="helper-text"></p>
+        </div>
+
+        <div id="resultSection" class="stack-card hidden">
+          <p class="section-kicker">Resultat</p>
+          <h2>Fin de la question</h2>
+          <p id="correctAnswerLabel" class="question-prompt"></p>
+        </div>
+
+        <div id="endSection" class="stack-card hidden">
+          <p class="section-kicker">Final</p>
+          <h2>Podium et classement final</h2>
+          <div id="podiumContainer" class="podium-grid"></div>
+
+          <div id="restTableWrapper" class="table-card hidden">
+            <h3>Autres joueurs</h3>
+            <div class="table-scroll">
+              <table class="leaderboard-table">
+                <thead>
+                  <tr>
+                    <th>Place</th>
+                    <th>Pseudo</th>
+                    <th>Score</th>
+                  </tr>
+                </thead>
+                <tbody id="restLeaderboardBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/admin.js"></script>
+  </body>
+  </html>

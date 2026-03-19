@@ -1,3 +1,5 @@
+const crypto = require("crypto");
+
 const {
   loadQuestions,
   sanitizeQuestionForClient,
@@ -6,15 +8,15 @@ const {
 
 const QUESTION_TIME_LIMIT_MS = 20000;
 const BASE_POINTS = 100;
-const EVENT_ROOM_ID = "main-event";
+const ROOM_ID_LENGTH = 8;
 const AVATAR_STYLE = "fun-emoji";
 
-let activeRoom = null;
+const rooms = new Map();
 
 function createDefaultAvatar(seedSource) {
   return {
     style: AVATAR_STYLE,
-    seed: `${seedSource}-${Date.now()}`,
+    seed: `${seedSource}-${Date.now()}-${crypto.randomUUID().slice(0, 6)}`,
   };
 }
 
@@ -33,41 +35,81 @@ function emitError(socket, message) {
   socket.emit("error:message", { message });
 }
 
-function getSessionStatus() {
-  if (!activeRoom) {
+function normalizeRoomId(roomId) {
+  const value = typeof roomId === "string" ? roomId.trim().toLowerCase() : "";
+  return value.slice(0, ROOM_ID_LENGTH);
+}
+
+function getRoomChannel(roomId) {
+  return `room:${roomId}`;
+}
+
+function getAdminChannel(roomId) {
+  return `room:${roomId}:admins`;
+}
+
+function createRoom(roomId) {
+  const normalizedRoomId = normalizeRoomId(roomId);
+
+  if (!normalizedRoomId) {
+    return null;
+  }
+
+  if (!rooms.has(normalizedRoomId)) {
+    rooms.set(normalizedRoomId, {
+      id: normalizedRoomId,
+      admins: [],
+      players: [],
+      currentQuestionIndex: -1,
+      questions: loadQuestions(),
+      answers: {},
+      status: "lobby",
+      timer: null,
+      questionStartedAt: null,
+    });
+  }
+
+  return rooms.get(normalizedRoomId);
+}
+
+function getRoom(roomId) {
+  return rooms.get(normalizeRoomId(roomId)) || null;
+}
+
+function getVisiblePlayers(room) {
+  return room.players.map((player) => ({
+    id: player.id,
+    name: player.name,
+    score: player.score,
+    isReady: player.isReady,
+    avatar: player.avatar,
+  }));
+}
+
+function getRoomStatus(room) {
+  if (!room) {
     return {
       exists: false,
       joinable: false,
-      status: "idle",
-      hostName: null,
+      status: "missing",
       playerCount: 0,
+      readyCount: 0,
     };
   }
 
-  const host = activeRoom.players.find((player) => player.id === activeRoom.hostId);
+  const readyCount = room.players.filter((player) => player.isReady).length;
 
   return {
     exists: true,
-    joinable: activeRoom.status === "lobby",
-    status: activeRoom.status,
-    hostName: host ? host.name : null,
-    playerCount: activeRoom.players.length,
+    joinable: room.status === "lobby",
+    status: room.status,
+    playerCount: room.players.length,
+    readyCount,
   };
 }
 
-function emitSessionStatus(io, socket = null) {
-  const payload = getSessionStatus();
-
-  if (socket) {
-    socket.emit("session:status", payload);
-    return;
-  }
-
-  io.emit("session:status", payload);
-}
-
 function canStartGame(room) {
-  return room.players.length >= 2 && room.players.every((player) => player.isReady);
+  return room.players.length >= 1 && room.players.every((player) => player.isReady);
 }
 
 function getLeaderboard(room) {
@@ -82,56 +124,105 @@ function getLeaderboard(room) {
     }));
 }
 
-function emitRoomState(io) {
-  if (!activeRoom) {
-    emitSessionStatus(io);
-    io.emit("room:closed");
+function emitRoomSnapshot(io, room, socket = null) {
+  const payload = {
+    roomId: room.id,
+    players: getVisiblePlayers(room),
+    status: room.status,
+    currentQuestionIndex: room.currentQuestionIndex,
+    totalQuestions: room.questions.length,
+    canStart: canStartGame(room),
+    readyCount: room.players.filter((player) => player.isReady).length,
+  };
+
+  if (socket) {
+    socket.emit("room:state", payload);
     return;
   }
 
-  io.to(EVENT_ROOM_ID).emit("room:state", {
-    hostId: activeRoom.hostId,
-    players: activeRoom.players.map((player) => ({
-      id: player.id,
-      name: player.name,
-      score: player.score,
-      isReady: player.isReady,
-      isHost: player.id === activeRoom.hostId,
-      avatar: player.avatar,
-    })),
-    status: activeRoom.status,
-    currentQuestionIndex: activeRoom.currentQuestionIndex,
-    totalQuestions: activeRoom.questions.length,
-    canStart: canStartGame(activeRoom),
-  });
-
-  emitSessionStatus(io);
+  io.to(getRoomChannel(room.id)).emit("room:state", payload);
 }
 
-function cleanupRoom() {
-  if (!activeRoom) {
+function emitAdminSnapshot(io, room, socket = null) {
+  const payload = {
+    roomId: room.id,
+    players: getVisiblePlayers(room),
+    status: room.status,
+    currentQuestionIndex: room.currentQuestionIndex,
+    totalQuestions: room.questions.length,
+    canStart: canStartGame(room),
+    readyCount: room.players.filter((player) => player.isReady).length,
+  };
+
+  if (socket) {
+    socket.emit("admin:state", payload);
     return;
   }
 
-  if (activeRoom.timer) {
-    clearTimeout(activeRoom.timer);
-  }
-
-  activeRoom = null;
+  io.to(getAdminChannel(room.id)).emit("admin:state", payload);
 }
 
-function finishGame(io) {
-  if (!activeRoom) {
+function emitFullState(io, room, socket = null) {
+  emitRoomSnapshot(io, room, socket);
+  emitAdminSnapshot(io, room, socket);
+}
+
+function cleanupRoom(roomId) {
+  const room = getRoom(roomId);
+
+  if (!room) {
     return;
   }
 
-  activeRoom.status = "finished";
+  if (room.timer) {
+    clearTimeout(room.timer);
+  }
 
-  io.to(EVENT_ROOM_ID).emit("game:end", {
-    leaderboard: getLeaderboard(activeRoom),
-  });
+  rooms.delete(room.id);
+}
 
-  emitRoomState(io);
+function closeRoom(io, room) {
+  io.to(getRoomChannel(room.id)).emit("room:closed");
+  io.to(getAdminChannel(room.id)).emit("room:closed", { roomId: room.id });
+  cleanupRoom(room.id);
+}
+
+function listRooms() {
+  return [...rooms.values()]
+    .map((room) => ({
+      roomId: room.id,
+      status: room.status,
+      playerCount: room.players.length,
+      readyCount: room.players.filter((player) => player.isReady).length,
+      adminCount: room.admins.length,
+      currentQuestionIndex: room.currentQuestionIndex,
+      totalQuestions: room.questions.length,
+    }))
+    .sort((left, right) => left.roomId.localeCompare(right.roomId));
+}
+
+function closeRoomById(io, roomId) {
+  const room = getRoom(roomId);
+
+  if (!room) {
+    return false;
+  }
+
+  closeRoom(io, room);
+  return true;
+}
+
+function finishGame(io, room) {
+  room.status = "finished";
+
+  const payload = {
+    leaderboard: getLeaderboard(room),
+  };
+
+  io.to(getRoomChannel(room.id)).emit("game:end", payload);
+  io.to(getAdminChannel(room.id)).emit("game:end", payload);
+
+  emitFullState(io, room);
 }
 
 function calculateSpeedBonus(answeredAt, questionStartedAt) {
@@ -141,110 +232,100 @@ function calculateSpeedBonus(answeredAt, questionStartedAt) {
   return Math.round(remainingRatio * 50);
 }
 
-function advanceToQuestion(io) {
-  if (!activeRoom) {
+function advanceToQuestion(io, room) {
+  room.currentQuestionIndex += 1;
+
+  if (room.currentQuestionIndex >= room.questions.length) {
+    finishGame(io, room);
     return;
   }
 
-  activeRoom.currentQuestionIndex += 1;
+  const question = room.questions[room.currentQuestionIndex];
+  room.answers = {};
+  room.questionStartedAt = Date.now();
+  room.status = "question";
 
-  if (activeRoom.currentQuestionIndex >= activeRoom.questions.length) {
-    finishGame(io);
-    return;
-  }
-
-  const question = activeRoom.questions[activeRoom.currentQuestionIndex];
-  activeRoom.answers = {};
-  activeRoom.questionStartedAt = Date.now();
-  activeRoom.status = "question";
-
-  io.to(EVENT_ROOM_ID).emit("question:send", {
-    questionIndex: activeRoom.currentQuestionIndex,
-    totalQuestions: activeRoom.questions.length,
+  const payload = {
+    questionIndex: room.currentQuestionIndex,
+    totalQuestions: room.questions.length,
     question: sanitizeQuestionForClient(question),
-    endsAt: activeRoom.questionStartedAt + QUESTION_TIME_LIMIT_MS,
+    endsAt: room.questionStartedAt + QUESTION_TIME_LIMIT_MS,
     durationMs: QUESTION_TIME_LIMIT_MS,
-  });
+  };
 
-  emitRoomState(io);
+  io.to(getRoomChannel(room.id)).emit("question:send", payload);
+  io.to(getAdminChannel(room.id)).emit("question:send", payload);
 
-  activeRoom.timer = setTimeout(() => {
-    finishQuestion(io);
+  emitFullState(io, room);
+
+  room.timer = setTimeout(() => {
+    finishQuestion(io, room);
   }, QUESTION_TIME_LIMIT_MS);
 }
 
-function finishQuestion(io) {
-  if (!activeRoom || activeRoom.status !== "question") {
+function finishQuestion(io, room) {
+  if (room.status !== "question") {
     return;
   }
 
-  if (activeRoom.timer) {
-    clearTimeout(activeRoom.timer);
-    activeRoom.timer = null;
+  if (room.timer) {
+    clearTimeout(room.timer);
+    room.timer = null;
   }
 
-  const question = activeRoom.questions[activeRoom.currentQuestionIndex];
+  const question = room.questions[room.currentQuestionIndex];
   const correctAnswerIndex = getCorrectAnswerIndex(question);
 
-  activeRoom.status = "result";
+  room.status = "result";
 
-  io.to(EVENT_ROOM_ID).emit("question:result", {
+  const payload = {
     correctAnswerIndex,
-    leaderboard: getLeaderboard(activeRoom),
-    answers: Object.values(activeRoom.answers),
-  });
+    leaderboard: getLeaderboard(room),
+    answers: Object.values(room.answers),
+  };
 
-  emitRoomState(io);
+  io.to(getRoomChannel(room.id)).emit("question:result", payload);
+  io.to(getAdminChannel(room.id)).emit("question:result", payload);
 
-  activeRoom.timer = setTimeout(() => {
-    advanceToQuestion(io);
+  emitFullState(io, room);
+
+  room.timer = setTimeout(() => {
+    advanceToQuestion(io, room);
   }, 5000);
 }
 
-function handleRoomCreate(io, socket, payload) {
-  const nickname = payload?.nickname?.trim();
+function handleAdminJoin(io, socket, payload) {
+  const roomId = normalizeRoomId(payload?.roomId);
 
-  if (!nickname) {
-    emitError(socket, "Le pseudo est obligatoire.");
+  if (!roomId) {
+    emitError(socket, "Room introuvable.");
     return;
   }
 
-  if (activeRoom) {
-    emitError(socket, "Une partie existe deja. Entre simplement ton pseudo pour la rejoindre.");
-    return;
-  }
+  const room = createRoom(roomId);
 
-  activeRoom = {
-    hostId: socket.id,
-    players: [
-      {
-        id: socket.id,
-        name: nickname,
-        score: 0,
-        isReady: true,
-        avatar: createDefaultAvatar(socket.id),
-      },
-    ],
-    currentQuestionIndex: -1,
-    questions: loadQuestions(),
-    answers: {},
-    status: "lobby",
-    timer: null,
-    questionStartedAt: null,
-  };
+  room.admins = room.admins.filter((admin) => admin.id !== socket.id);
+  room.admins.push({ id: socket.id });
 
-  socket.data.roomId = EVENT_ROOM_ID;
-  socket.data.nickname = nickname;
-  socket.join(EVENT_ROOM_ID);
+  socket.data.role = "admin";
+  socket.data.roomId = room.id;
+  socket.join(getRoomChannel(room.id));
+  socket.join(getAdminChannel(room.id));
 
-  socket.emit("room:create", {
-    playerId: socket.id,
+  socket.emit("admin:joined", { roomId: room.id });
+  emitFullState(io, room, socket);
+}
+
+function handleRoomStatusRequest(io, socket, payload) {
+  const room = getRoom(payload?.roomId);
+  socket.emit("room:status", {
+    roomId: normalizeRoomId(payload?.roomId),
+    ...getRoomStatus(room),
   });
-
-  emitRoomState(io);
 }
 
 function handleRoomJoin(io, socket, payload) {
+  const room = getRoom(payload?.roomId);
   const nickname = payload?.nickname?.trim();
 
   if (!nickname) {
@@ -252,76 +333,84 @@ function handleRoomJoin(io, socket, payload) {
     return;
   }
 
-  if (!activeRoom) {
-    emitError(socket, "Aucune partie n'a encore ete creee.");
+  if (!room) {
+    emitError(socket, "Cette room n'existe pas.");
     return;
   }
 
-  if (activeRoom.status !== "lobby") {
+  if (room.status !== "lobby") {
     emitError(socket, "La partie a deja commence.");
     return;
   }
 
-  if (activeRoom.players.some((player) => player.name.toLowerCase() === nickname.toLowerCase())) {
+  if (room.players.some((player) => player.name.toLowerCase() === nickname.toLowerCase())) {
     emitError(socket, "Ce pseudo est deja pris.");
     return;
   }
 
-  activeRoom.players.push({
+  const player = {
     id: socket.id,
     name: nickname,
     score: 0,
     isReady: false,
     avatar: createDefaultAvatar(socket.id),
-  });
+  };
 
-  socket.data.roomId = EVENT_ROOM_ID;
+  room.players.push(player);
+
+  socket.data.role = "player";
+  socket.data.roomId = room.id;
   socket.data.nickname = nickname;
-  socket.join(EVENT_ROOM_ID);
+  socket.join(getRoomChannel(room.id));
 
   socket.emit("room:join", {
     playerId: socket.id,
+    roomId: room.id,
   });
 
-  emitRoomState(io);
+  emitFullState(io, room);
 }
 
 function handleGameStart(io, socket) {
-  if (!activeRoom) {
-    emitError(socket, "Aucune partie active.");
+  const room = getRoom(socket.data.roomId);
+
+  if (!room) {
+    emitError(socket, "Aucune room active.");
     return;
   }
 
-  if (activeRoom.hostId !== socket.id) {
+  if (socket.data.role !== "admin") {
     emitError(socket, "Seul l'admin peut lancer la partie.");
     return;
   }
 
-  if (activeRoom.status !== "lobby") {
+  if (room.status !== "lobby") {
     emitError(socket, "La partie a deja commence.");
     return;
   }
 
-  if (!canStartGame(activeRoom)) {
+  if (!canStartGame(room)) {
     emitError(socket, "Tous les joueurs doivent etre prets avant le lancement.");
     return;
   }
 
-  advanceToQuestion(io);
+  advanceToQuestion(io, room);
 }
 
 function handleReadyToggle(io, socket, payload) {
-  if (!activeRoom) {
-    emitError(socket, "Aucune partie active.");
+  const room = getRoom(socket.data.roomId);
+
+  if (!room) {
+    emitError(socket, "Aucune room active.");
     return;
   }
 
-  if (activeRoom.status !== "lobby") {
+  if (room.status !== "lobby") {
     emitError(socket, "Le statut pret ne peut etre change que dans le lobby.");
     return;
   }
 
-  const player = activeRoom.players.find((entry) => entry.id === socket.id);
+  const player = room.players.find((entry) => entry.id === socket.id);
 
   if (!player) {
     emitError(socket, "Joueur introuvable.");
@@ -329,21 +418,23 @@ function handleReadyToggle(io, socket, payload) {
   }
 
   player.isReady = Boolean(payload?.isReady);
-  emitRoomState(io);
+  emitFullState(io, room);
 }
 
 function handleAvatarUpdate(io, socket, payload) {
-  if (!activeRoom) {
-    emitError(socket, "Aucune partie active.");
+  const room = getRoom(socket.data.roomId);
+
+  if (!room) {
+    emitError(socket, "Aucune room active.");
     return;
   }
 
-  if (activeRoom.status !== "lobby") {
+  if (room.status !== "lobby") {
     emitError(socket, "L avatar ne peut etre change que dans le lobby.");
     return;
   }
 
-  const player = activeRoom.players.find((entry) => entry.id === socket.id);
+  const player = room.players.find((entry) => entry.id === socket.id);
 
   if (!player) {
     emitError(socket, "Joueur introuvable.");
@@ -351,22 +442,29 @@ function handleAvatarUpdate(io, socket, payload) {
   }
 
   player.avatar = sanitizeAvatar(payload, socket.id);
-  emitRoomState(io);
+  emitFullState(io, room);
 }
 
 function handleAnswerSubmit(io, socket, payload) {
-  if (!activeRoom || activeRoom.status !== "question") {
+  const room = getRoom(socket.data.roomId);
+
+  if (!room || room.status !== "question") {
     emitError(socket, "Aucune question active pour le moment.");
     return;
   }
 
-  if (activeRoom.answers[socket.id]) {
+  if (socket.data.role !== "player") {
+    emitError(socket, "Seuls les joueurs peuvent repondre.");
+    return;
+  }
+
+  if (room.answers[socket.id]) {
     emitError(socket, "Une seule reponse par question.");
     return;
   }
 
   const selectedAnswerIndex = Number(payload?.answerIndex);
-  const currentQuestion = activeRoom.questions[activeRoom.currentQuestionIndex];
+  const currentQuestion = room.questions[room.currentQuestionIndex];
 
   if (!Number.isInteger(selectedAnswerIndex) || selectedAnswerIndex < 0 || selectedAnswerIndex > 3) {
     emitError(socket, "Reponse invalide.");
@@ -376,10 +474,10 @@ function handleAnswerSubmit(io, socket, payload) {
   const answeredAt = Date.now();
   const correctAnswerIndex = getCorrectAnswerIndex(currentQuestion);
   const isCorrect = selectedAnswerIndex === correctAnswerIndex;
-  const speedBonus = isCorrect ? calculateSpeedBonus(answeredAt, activeRoom.questionStartedAt) : 0;
+  const speedBonus = isCorrect ? calculateSpeedBonus(answeredAt, room.questionStartedAt) : 0;
   const pointsEarned = isCorrect ? BASE_POINTS + speedBonus : 0;
 
-  activeRoom.answers[socket.id] = {
+  room.answers[socket.id] = {
     playerId: socket.id,
     name: socket.data.nickname,
     answerIndex: selectedAnswerIndex,
@@ -388,7 +486,7 @@ function handleAnswerSubmit(io, socket, payload) {
     answeredAt,
   };
 
-  const player = activeRoom.players.find((entry) => entry.id === socket.id);
+  const player = room.players.find((entry) => entry.id === socket.id);
 
   if (player) {
     player.score += pointsEarned;
@@ -400,55 +498,70 @@ function handleAnswerSubmit(io, socket, payload) {
     pointsEarned,
   });
 
-  const everyoneAnswered = activeRoom.players.every((playerEntry) => activeRoom.answers[playerEntry.id]);
+  const everyoneAnswered = room.players.every((playerEntry) => room.answers[playerEntry.id]);
 
   if (everyoneAnswered) {
-    finishQuestion(io);
-  } else {
-    io.to(EVENT_ROOM_ID).emit("answer:count", {
-      count: Object.keys(activeRoom.answers).length,
-      totalPlayers: activeRoom.players.length,
-    });
-    emitRoomState(io);
+    finishQuestion(io, room);
+    return;
   }
+
+  const countPayload = {
+    count: Object.keys(room.answers).length,
+    totalPlayers: room.players.length,
+  };
+
+  io.to(getRoomChannel(room.id)).emit("answer:count", countPayload);
+  io.to(getAdminChannel(room.id)).emit("answer:count", countPayload);
+  emitFullState(io, room);
 }
 
-function handleDisconnect(io, socket) {
-  if (!activeRoom) {
+function removeSocketFromRoom(io, socket, room) {
+  if (!room) {
     return;
   }
 
-  activeRoom.players = activeRoom.players.filter((player) => player.id !== socket.id);
-  delete activeRoom.answers[socket.id];
+  if (socket.data.role === "admin") {
+    room.admins = room.admins.filter((admin) => admin.id !== socket.id);
 
-  if (activeRoom.players.length === 0) {
-    cleanupRoom();
-    emitSessionStatus(io);
-    io.emit("room:closed");
+    if (room.admins.length === 0) {
+      closeRoom(io, room);
+      return;
+    }
+
+    emitAdminSnapshot(io, room);
     return;
   }
 
-  if (activeRoom.hostId === socket.id) {
-    activeRoom.hostId = activeRoom.players[0].id;
-    activeRoom.players[0].isReady = true;
+  room.players = room.players.filter((player) => player.id !== socket.id);
+  delete room.answers[socket.id];
+
+  if (room.players.length === 0) {
+    closeRoom(io, room);
+    return;
   }
 
-  emitRoomState(io);
+  emitFullState(io, room);
 }
 
 function registerSocketHandlers(io) {
   io.on("connection", (socket) => {
-    emitSessionStatus(io, socket);
-    socket.on("room:create", (payload) => handleRoomCreate(io, socket, payload));
+    socket.on("admin:join", (payload) => handleAdminJoin(io, socket, payload));
+    socket.on("room:status", (payload) => handleRoomStatusRequest(io, socket, payload));
     socket.on("room:join", (payload) => handleRoomJoin(io, socket, payload));
     socket.on("game:start", () => handleGameStart(io, socket));
     socket.on("player:ready", (payload) => handleReadyToggle(io, socket, payload));
     socket.on("player:avatar", (payload) => handleAvatarUpdate(io, socket, payload));
     socket.on("answer:submit", (payload) => handleAnswerSubmit(io, socket, payload));
-    socket.on("disconnect", () => handleDisconnect(io, socket));
+    socket.on("disconnect", () => {
+      const room = getRoom(socket.data.roomId);
+      removeSocketFromRoom(io, socket, room);
+    });
   });
 }
 
 module.exports = {
+  closeRoomById,
+  createRoom,
+  listRooms,
   registerSocketHandlers,
 };

@@ -1,41 +1,40 @@
 const socket = io();
 
+const roomId = window.location.pathname.split("/").filter(Boolean).pop() || "";
+
 const state = {
+  roomId,
   playerId: null,
-  hostId: null,
   nickname: "",
   players: [],
   canStart: false,
   currentQuestion: null,
   hasAnswered: false,
   timerInterval: null,
-  sessionExists: false,
-  sessionJoinable: false,
-  roomStatus: "idle",
+  roomStatus: "missing",
   pendingAvatar: null,
+  roomExists: false,
+  roomJoinable: false,
 };
 
 const AVATAR_STYLE = "fun-emoji";
 const DICEBEAR_BASE_URL = "https://api.dicebear.com/9.x";
 
 const errorBanner = document.getElementById("errorBanner");
-
 const lobbyView = document.getElementById("lobbyView");
 const gameView = document.getElementById("gameView");
-
+const roomIdLabel = document.getElementById("roomIdLabel");
+const roomStatusCopy = document.getElementById("roomStatusCopy");
 const joinCard = document.getElementById("joinCard");
 const lobbyCard = document.getElementById("lobbyCard");
 const nicknameInput = document.getElementById("nicknameInput");
 const enterRoomButton = document.getElementById("enterRoomButton");
-const adminSummary = document.getElementById("adminSummary");
-const connectedCountLabel = document.getElementById("connectedCountLabel");
 const readyCountLabel = document.getElementById("readyCountLabel");
 const playerNameLabel = document.getElementById("playerNameLabel");
 const selectedAvatarImage = document.getElementById("selectedAvatarImage");
 const shuffleAvatarsButton = document.getElementById("shuffleAvatarsButton");
 const playersList = document.getElementById("playersList");
 const readyToggleButton = document.getElementById("readyToggleButton");
-const startGameButton = document.getElementById("startGameButton");
 
 const questionSection = document.getElementById("questionSection");
 const resultSection = document.getElementById("resultSection");
@@ -61,10 +60,6 @@ function showError(message) {
   showError.timeoutId = window.setTimeout(() => {
     errorBanner.classList.add("hidden");
   }, 4000);
-}
-
-function isHost() {
-  return state.playerId && state.playerId === state.hostId;
 }
 
 function getCurrentPlayer() {
@@ -137,17 +132,11 @@ function renderPlayers() {
 
   state.players.forEach((player) => {
     const item = document.createElement("li");
-    const badges = [];
-
-    if (player.id === state.hostId) {
-      badges.push('<span class="player-status player-status-host">admin</span>');
-    } else {
-      badges.push(
-        player.isReady
-          ? '<span class="player-status player-status-ready">pret</span>'
-          : '<span class="player-status player-status-waiting">en attente</span>'
-      );
-    }
+    const badges = [
+      player.isReady
+        ? '<span class="player-status player-status-ready">pret</span>'
+        : '<span class="player-status player-status-waiting">en attente</span>',
+    ];
 
     if (player.id === state.playerId) {
       badges.push('<span class="player-status player-status-self">toi</span>');
@@ -172,37 +161,37 @@ function renderLobby() {
   const joined = Boolean(currentPlayer);
   const readyPlayers = state.players.filter((player) => player.isReady).length;
 
+  roomIdLabel.textContent = state.roomId || "-";
+
+  if (!state.roomExists) {
+    roomStatusCopy.textContent = "Cette room n'existe pas ou a deja ete fermee.";
+  } else if (!state.roomJoinable && !joined) {
+    roomStatusCopy.textContent = "La partie est deja lancee. Cette salle d'attente est fermee.";
+  } else {
+    roomStatusCopy.textContent =
+      "Choisis ton avatar, entre ton pseudo puis passe en mode pret.";
+  }
+
   joinCard.classList.toggle("hidden", joined);
   lobbyCard.classList.toggle("hidden", !joined);
 
   if (!joined) {
-    enterRoomButton.disabled = !state.sessionJoinable && state.sessionExists;
+    enterRoomButton.disabled = !state.roomExists || !state.roomJoinable;
     return;
   }
 
   playerNameLabel.textContent = currentPlayer.name;
+  readyCountLabel.textContent = `${readyPlayers}/${state.players.length}`;
+
   if (!currentPlayer.avatar && !state.pendingAvatar) {
     state.pendingAvatar = createAvatarChoice();
     emitAvatarSelection(state.pendingAvatar);
   }
+
   renderAvatarPicker();
   renderPlayers();
 
-  adminSummary.classList.toggle("hidden", !isHost());
-  connectedCountLabel.textContent = String(state.players.length);
-  readyCountLabel.textContent = `${readyPlayers}/${state.players.length}`;
-
-  readyToggleButton.classList.toggle("hidden", isHost());
-  startGameButton.classList.toggle("hidden", !isHost());
-
-  if (isHost()) {
-    startGameButton.disabled = !state.canStart;
-    return;
-  }
-
-  readyToggleButton.textContent = currentPlayer.isReady
-    ? "Je ne suis plus pret"
-    : "Je suis pret";
+  readyToggleButton.textContent = currentPlayer.isReady ? "Je ne suis plus pret" : "Je suis pret";
 }
 
 function renderFinalLeaderboard(leaderboard) {
@@ -315,17 +304,7 @@ enterRoomButton.addEventListener("click", () => {
   }
 
   state.nickname = nickname;
-
-  if (!state.sessionExists) {
-    socket.emit("room:create", { nickname });
-    return;
-  }
-
-  socket.emit("room:join", { nickname });
-});
-
-startGameButton.addEventListener("click", () => {
-  socket.emit("game:start");
+  socket.emit("room:join", { roomId: state.roomId, nickname });
 });
 
 readyToggleButton.addEventListener("click", () => {
@@ -344,33 +323,38 @@ shuffleAvatarsButton.addEventListener("click", () => {
   emitAvatarSelection(state.pendingAvatar);
 });
 
-socket.on("connect", () => {});
-
-socket.on("disconnect", () => {});
+socket.on("connect", () => {
+  socket.emit("room:status", { roomId: state.roomId });
+});
 
 socket.on("error:message", (payload) => {
   showError(payload.message);
 });
 
-socket.on("room:create", (payload) => {
-  state.playerId = payload.playerId;
-  playerNameLabel.textContent = state.nickname;
-  nicknameInput.value = state.nickname;
+socket.on("room:status", (payload) => {
+  state.roomId = payload.roomId || state.roomId;
+  state.roomExists = payload.exists;
+  state.roomJoinable = payload.joinable;
+  state.roomStatus = payload.status;
+  renderShell();
   renderLobby();
 });
 
 socket.on("room:join", (payload) => {
   state.playerId = payload.playerId;
+  state.roomId = payload.roomId;
   playerNameLabel.textContent = state.nickname;
   nicknameInput.value = state.nickname;
   renderLobby();
 });
 
 socket.on("room:state", (payload) => {
-  state.hostId = payload.hostId;
+  state.roomId = payload.roomId;
   state.players = payload.players;
   state.canStart = payload.canStart;
   state.roomStatus = payload.status;
+  state.roomExists = true;
+  state.roomJoinable = payload.status === "lobby";
 
   renderShell();
   renderLobby();
@@ -378,26 +362,16 @@ socket.on("room:state", (payload) => {
 
 socket.on("room:closed", () => {
   state.playerId = null;
-  state.hostId = null;
   state.players = [];
   state.canStart = false;
-  state.sessionExists = false;
-  state.sessionJoinable = false;
-  state.roomStatus = "idle";
+  state.roomExists = false;
+  state.roomJoinable = false;
+  state.roomStatus = "missing";
   state.currentQuestion = null;
   state.pendingAvatar = null;
 
   window.clearInterval(state.timerInterval);
   resetGamePanels();
-  renderShell();
-  renderLobby();
-});
-
-socket.on("session:status", (payload) => {
-  state.sessionExists = payload.exists;
-  state.sessionJoinable = payload.joinable;
-  state.roomStatus = payload.status;
-
   renderShell();
   renderLobby();
 });

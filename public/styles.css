@@ -114,6 +114,11 @@ p {
   padding: 28px 0 48px;
 }
 
+.admin-shell,
+.room-shell {
+  width: min(1180px, calc(100% - 32px));
+}
+
 .hero-card,
 .view-card {
   position: relative;
@@ -351,6 +356,70 @@ h3 {
   padding: 24px;
 }
 
+.admin-layout,
+.waiting-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.rooms-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.room-admin-card {
+  padding: 22px;
+  border-radius: 26px;
+  border: 1px solid rgba(196, 79, 59, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255, 251, 245, 0.98) 0%, rgba(255, 239, 223, 0.94) 100%);
+  box-shadow: var(--shadow-soft);
+}
+
+.room-admin-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.room-admin-toolbar {
+  justify-content: flex-end;
+  margin-top: 0;
+}
+
+.room-admin-stats {
+  margin-bottom: 12px;
+}
+
+.room-admin-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.empty-state {
+  padding: 28px;
+  border-radius: 24px;
+  border: 1px dashed rgba(196, 79, 59, 0.2);
+  background: rgba(255, 255, 255, 0.54);
+}
+
+.waiting-sidebar {
+  display: grid;
+  gap: 16px;
+}
+
+.single-summary {
+  grid-template-columns: 1fr;
+  margin-bottom: 0;
+}
+
 .field-label {
   display: block;
   font-weight: 800;
@@ -392,10 +461,45 @@ input:focus {
     opacity 0.18s ease;
 }
 
+.link-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50px;
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(196, 79, 59, 0.16);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 800;
+  word-break: break-all;
+}
+
 .primary-button {
   color: #fffaf4;
   background: linear-gradient(135deg, var(--primary), var(--primary-dark));
   box-shadow: 0 14px 30px rgba(159, 55, 39, 0.22);
+}
+
+.danger-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50px;
+  padding: 12px 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(181, 59, 56, 0.2);
+  cursor: pointer;
+  font-weight: 800;
+  color: #fff7f6;
+  background: linear-gradient(135deg, #c43e37, #932c27);
+  box-shadow: 0 14px 28px rgba(147, 44, 39, 0.22);
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease;
 }
 
 .secondary-button {
@@ -406,6 +510,7 @@ input:focus {
 
 .primary-button:hover,
 .secondary-button:hover,
+.danger-button:hover,
 .answers-grid button:hover {
   transform: translateY(-2px);
 }
@@ -451,6 +556,29 @@ button:disabled {
   margin-bottom: 18px;
 }
 
+.room-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.room-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(196, 79, 59, 0.14);
+  font-weight: 700;
+}
+
+.room-badge-accent {
+  background: rgba(255, 226, 163, 0.72);
+  color: #825700;
+}
+
 .admin-summary-card {
   padding: 18px;
   border-radius: 22px;
@@ -479,6 +607,33 @@ button:disabled {
 .avatar-options {
   display: flex;
   flex-wrap: wrap;
+  gap: 10px;
+}
+
+.qr-block {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+  padding: 18px;
+  margin-bottom: 18px;
+  border-radius: 24px;
+  background:
+    linear-gradient(135deg, rgba(255, 247, 235, 0.98), rgba(255, 236, 219, 0.9));
+  border: 1px solid rgba(196, 79, 59, 0.14);
+}
+
+.qr-code {
+  width: min(100%, 220px);
+  aspect-ratio: 1;
+  border-radius: 22px;
+  border: 10px solid rgba(255, 255, 255, 0.92);
+  background: #fff;
+  box-shadow: var(--shadow-soft);
+}
+
+.qr-copy {
+  display: grid;
   gap: 10px;
 }
 
@@ -805,6 +960,8 @@ button:disabled {
 
 @media (max-width: 920px) {
   .hero-layout,
+  .admin-layout,
+  .waiting-layout,
   .admin-summary,
   .podium-grid,
   .answers-grid {
@@ -831,6 +988,15 @@ button:disabled {
 
   .avatar-station {
     gap: 10px;
+  }
+
+  .qr-block {
+    grid-template-columns: 1fr;
+  }
+
+  .room-admin-head {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 
