@@ -12,7 +12,11 @@ const state = {
   sessionExists: false,
   sessionJoinable: false,
   roomStatus: "idle",
+  pendingAvatar: null,
 };
+
+const AVATAR_STYLE = "fun-emoji";
+const DICEBEAR_BASE_URL = "https://api.dicebear.com/9.x";
 
 const errorBanner = document.getElementById("errorBanner");
 
@@ -27,6 +31,8 @@ const adminSummary = document.getElementById("adminSummary");
 const connectedCountLabel = document.getElementById("connectedCountLabel");
 const readyCountLabel = document.getElementById("readyCountLabel");
 const playerNameLabel = document.getElementById("playerNameLabel");
+const selectedAvatarImage = document.getElementById("selectedAvatarImage");
+const shuffleAvatarsButton = document.getElementById("shuffleAvatarsButton");
 const playersList = document.getElementById("playersList");
 const readyToggleButton = document.getElementById("readyToggleButton");
 const startGameButton = document.getElementById("startGameButton");
@@ -65,6 +71,50 @@ function getCurrentPlayer() {
   return state.players.find((player) => player.id === state.playerId) || null;
 }
 
+function createAvatarSeed() {
+  if (window.crypto?.randomUUID) {
+    return window.crypto.randomUUID();
+  }
+
+  return `avatar-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function getAvatarUrl(avatar, size = 96) {
+  if (!avatar?.style || !avatar?.seed) {
+    return "";
+  }
+
+  const params = new URLSearchParams({
+    seed: avatar.seed,
+    size: String(size),
+    radius: "24",
+    backgroundType: "gradientLinear",
+  });
+
+  return `${DICEBEAR_BASE_URL}/${avatar.style}/svg?${params.toString()}`;
+}
+
+function createAvatarChoice(style = AVATAR_STYLE) {
+  return {
+    style,
+    seed: createAvatarSeed(),
+  };
+}
+
+function emitAvatarSelection(avatar) {
+  if (!state.playerId) {
+    return;
+  }
+
+  socket.emit("player:avatar", avatar);
+}
+
+function renderAvatarPicker() {
+  const currentPlayer = getCurrentPlayer();
+  const currentAvatar = currentPlayer?.avatar || state.pendingAvatar;
+  selectedAvatarImage.src = getAvatarUrl(currentAvatar, 128);
+}
+
 function resetGamePanels() {
   questionSection.classList.add("hidden");
   resultSection.classList.add("hidden");
@@ -86,7 +136,6 @@ function renderPlayers() {
 
   state.players.forEach((player) => {
     const item = document.createElement("li");
-    const initial = (player.name || "?").charAt(0).toUpperCase();
     const badges = [];
 
     if (player.id === state.hostId) {
@@ -105,7 +154,9 @@ function renderPlayers() {
 
     item.className = "player-row";
     item.innerHTML = `
-      <div class="player-avatar" aria-hidden="true">${initial}</div>
+      <div class="player-avatar">
+        <img src="${getAvatarUrl(player.avatar, 64)}" alt="" />
+      </div>
       <div class="player-main">
         <strong>${player.name}</strong>
         <div class="player-status-row">${badges.join("")}</div>
@@ -129,6 +180,11 @@ function renderLobby() {
   }
 
   playerNameLabel.textContent = currentPlayer.name;
+  if (!currentPlayer.avatar && !state.pendingAvatar) {
+    state.pendingAvatar = createAvatarChoice();
+    emitAvatarSelection(state.pendingAvatar);
+  }
+  renderAvatarPicker();
   renderPlayers();
 
   adminSummary.classList.toggle("hidden", !isHost());
@@ -175,6 +231,9 @@ function renderFinalLeaderboard(leaderboard) {
     const card = document.createElement("article");
     card.className = `podium-card rank-${entry.rank}`;
     card.innerHTML = `
+      <div class="player-avatar podium-avatar">
+        <img src="${getAvatarUrl(entry.avatar, 88)}" alt="" />
+      </div>
       <div class="podium-place">${entry.rank}</div>
       <div class="podium-name">${entry.name}</div>
       <div class="podium-score">${entry.score} pts</div>
@@ -189,7 +248,12 @@ function renderFinalLeaderboard(leaderboard) {
     const row = document.createElement("tr");
     row.innerHTML = `
       <td>${entry.rank}</td>
-      <td>${entry.name}</td>
+      <td class="leaderboard-name-cell">
+        <span class="player-avatar player-avatar-inline">
+          <img src="${getAvatarUrl(entry.avatar, 48)}" alt="" />
+        </span>
+        <span>${entry.name}</span>
+      </td>
       <td>${entry.score} pts</td>
     `;
     restLeaderboardBody.appendChild(row);
@@ -279,6 +343,12 @@ readyToggleButton.addEventListener("click", () => {
   socket.emit("player:ready", { isReady: !currentPlayer.isReady });
 });
 
+shuffleAvatarsButton.addEventListener("click", () => {
+  state.pendingAvatar = createAvatarChoice();
+  renderAvatarPicker();
+  emitAvatarSelection(state.pendingAvatar);
+});
+
 socket.on("connect", () => {});
 
 socket.on("disconnect", () => {});
@@ -320,6 +390,7 @@ socket.on("room:closed", () => {
   state.sessionJoinable = false;
   state.roomStatus = "idle";
   state.currentQuestion = null;
+  state.pendingAvatar = null;
 
   window.clearInterval(state.timerInterval);
   resetGamePanels();
@@ -380,4 +451,5 @@ socket.on("game:end", (payload) => {
 });
 
 renderShell();
+state.pendingAvatar = createAvatarChoice();
 renderLobby();

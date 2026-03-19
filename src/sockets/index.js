@@ -7,8 +7,27 @@ const {
 const QUESTION_TIME_LIMIT_MS = 20000;
 const BASE_POINTS = 100;
 const EVENT_ROOM_ID = "main-event";
+const AVATAR_STYLE = "fun-emoji";
 
 let activeRoom = null;
+
+function createDefaultAvatar(seedSource) {
+  return {
+    style: AVATAR_STYLE,
+    seed: `${seedSource}-${Date.now()}`,
+  };
+}
+
+function sanitizeAvatar(payload, fallbackSeedSource) {
+  const style = typeof payload?.style === "string" ? payload.style.trim() : "";
+  const seed = typeof payload?.seed === "string" ? payload.seed.trim() : "";
+
+  if (style !== AVATAR_STYLE || !seed) {
+    return createDefaultAvatar(fallbackSeedSource);
+  }
+
+  return { style, seed };
+}
 
 function emitError(socket, message) {
   socket.emit("error:message", { message });
@@ -59,6 +78,7 @@ function getLeaderboard(room) {
       id: player.id,
       name: player.name,
       score: player.score,
+      avatar: player.avatar,
     }));
 }
 
@@ -77,6 +97,7 @@ function emitRoomState(io) {
       score: player.score,
       isReady: player.isReady,
       isHost: player.id === activeRoom.hostId,
+      avatar: player.avatar,
     })),
     status: activeRoom.status,
     currentQuestionIndex: activeRoom.currentQuestionIndex,
@@ -195,7 +216,15 @@ function handleRoomCreate(io, socket, payload) {
 
   activeRoom = {
     hostId: socket.id,
-    players: [{ id: socket.id, name: nickname, score: 0, isReady: true }],
+    players: [
+      {
+        id: socket.id,
+        name: nickname,
+        score: 0,
+        isReady: true,
+        avatar: createDefaultAvatar(socket.id),
+      },
+    ],
     currentQuestionIndex: -1,
     questions: loadQuestions(),
     answers: {},
@@ -238,7 +267,13 @@ function handleRoomJoin(io, socket, payload) {
     return;
   }
 
-  activeRoom.players.push({ id: socket.id, name: nickname, score: 0, isReady: false });
+  activeRoom.players.push({
+    id: socket.id,
+    name: nickname,
+    score: 0,
+    isReady: false,
+    avatar: createDefaultAvatar(socket.id),
+  });
 
   socket.data.roomId = EVENT_ROOM_ID;
   socket.data.nickname = nickname;
@@ -294,6 +329,28 @@ function handleReadyToggle(io, socket, payload) {
   }
 
   player.isReady = Boolean(payload?.isReady);
+  emitRoomState(io);
+}
+
+function handleAvatarUpdate(io, socket, payload) {
+  if (!activeRoom) {
+    emitError(socket, "Aucune partie active.");
+    return;
+  }
+
+  if (activeRoom.status !== "lobby") {
+    emitError(socket, "L avatar ne peut etre change que dans le lobby.");
+    return;
+  }
+
+  const player = activeRoom.players.find((entry) => entry.id === socket.id);
+
+  if (!player) {
+    emitError(socket, "Joueur introuvable.");
+    return;
+  }
+
+  player.avatar = sanitizeAvatar(payload, socket.id);
   emitRoomState(io);
 }
 
@@ -386,6 +443,7 @@ function registerSocketHandlers(io) {
     socket.on("room:join", (payload) => handleRoomJoin(io, socket, payload));
     socket.on("game:start", () => handleGameStart(io, socket));
     socket.on("player:ready", (payload) => handleReadyToggle(io, socket, payload));
+    socket.on("player:avatar", (payload) => handleAvatarUpdate(io, socket, payload));
     socket.on("answer:submit", (payload) => handleAnswerSubmit(io, socket, payload));
     socket.on("disconnect", () => handleDisconnect(io, socket));
   });

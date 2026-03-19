@@ -38,16 +38,17 @@
           </div>
 
           <div class="avatar-dock">
-            <div>
+            <div class="avatar-copy">
               <p class="section-kicker">Carte joueur</p>
               <h3 id="playerNameLabel">-</h3>
-              <p class="helper-text">Installe-toi dans le lobby pendant que tout le monde arrive.</p>
             </div>
-            <div class="avatar-options" aria-label="Selection d avatar a venir">
-              <button type="button" class="avatar-option avatar-option-active" disabled>A</button>
-              <button type="button" class="avatar-option" disabled>B</button>
-              <button type="button" class="avatar-option" disabled>C</button>
-              <button type="button" class="avatar-option" disabled>D</button>
+            <div class="avatar-station">
+              <div class="player-avatar player-avatar-large">
+                <img id="selectedAvatarImage" alt="" />
+              </div>
+              <div class="avatar-actions">
+                <button id="shuffleAvatarsButton" type="button" class="secondary-button">Relancer</button>
+              </div>
             </div>
           </div>
 

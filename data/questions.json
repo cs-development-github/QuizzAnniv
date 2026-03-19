@@ -7,7 +7,7 @@
       "18 Mars 2008",
       "13 Janvier 2008"
     ],
-    "correctAnswerIndex": 2
+    "correctAnswerIndex": 1
   },
   {
     "prompt": "Quelle est sa couleur préférée ?",
@@ -17,7 +17,7 @@
       "Violet",
       "Vert"
     ],
-    "correctAnswerIndex": 3
+    "correctAnswerIndex": 2
   },
   {
     "prompt": "Quel est son dessin animé préféré ?",
@@ -27,7 +27,7 @@
       "Toy story",
       "Winnie l'ourson"
     ],
-    "correctAnswerIndex": 1
+    "correctAnswerIndex": 0
   },
   {
     "prompt": "Quel est son film préféré ?",
@@ -37,7 +37,7 @@
       "Taxi 4",
       "Fast & Furious 2"
     ],
-    "correctAnswerIndex": 4
+    "correctAnswerIndex": 3
   },
   {
     "prompt": "Quelle est sa série préférée ?",
@@ -47,7 +47,7 @@
       "Les Frères Scott",
       "Breaking Bad"
     ],
-    "correctAnswerIndex": 1
+    "correctAnswerIndex": 0
   },
   {
     "prompt": "Quel est son plat préféré ?",
@@ -57,7 +57,7 @@
       "Burger",
       "Kebab"
     ],
-    "correctAnswerIndex": 2
+    "correctAnswerIndex": 1
   },
   {
     "prompt": "Quelle est sa plus grande qualité ?",
@@ -67,7 +67,7 @@
       "Être très drôle",
       "Être à l’écoute des autres"
     ],
-    "correctAnswerIndex": 4
+    "correctAnswerIndex": 3
   },
   {
     "prompt": "Quel est son plus gros défaut ?",
@@ -77,7 +77,7 @@
       "La jalousie",
       "La paresse"
     ],
-    "correctAnswerIndex": 3
+    "correctAnswerIndex": 2
   },
   {
     "prompt": "Quelle est sa voiture de rêve ?",
@@ -87,7 +87,7 @@
       "Audi RS6",
       "Nissan GTR"
     ],
-    "correctAnswerIndex": 2
+    "correctAnswerIndex": 1
   },
   {
     "prompt": "Quel est son métier de rêve ?",
@@ -97,7 +97,7 @@
       "Peintre en carrosserie",
       "Ingénieur mécanique"
     ],
-    "correctAnswerIndex": 2
+    "correctAnswerIndex": 1
   },
   {
     "prompt": "Quel est son jeu vidéo préféré ?",
@@ -107,7 +107,7 @@
       "FIFA",
       "Fornite"
     ],
-    "correctAnswerIndex": 1
+    "correctAnswerIndex": 0
   },
   {
     "prompt": "Quelle est sa marque de vêtements préférée ?",
@@ -117,7 +117,7 @@
       "Lacoste",
       "Nike"
     ],
-    "correctAnswerIndex": 4
+    "correctAnswerIndex": 3
   },
   {
     "prompt": "Quelle est son activité préférée ?",
@@ -127,7 +127,7 @@
       "Les rassemblements de voitures",
       "Faire de la méchanique"
     ],
-    "correctAnswerIndex": 3
+    "correctAnswerIndex": 2
   },
   {
     "prompt": "Quelle est sa boisson préférée ?",
@@ -137,7 +137,7 @@
       "Ice Tea",
       "Fanta"
     ],
-    "correctAnswerIndex": 1
+    "correctAnswerIndex": 0
   },
   {
     "prompt": "Quel est son animal préféré ?",
@@ -147,7 +147,7 @@
       "Serpent",
       "Chat"
     ],
-    "correctAnswerIndex": 2
+    "correctAnswerIndex": 1
   },
   {
     "prompt": "Quelle race de chien préfère-t-il ?",
@@ -157,7 +157,7 @@
       "Le Malinois",
       "Le Kangal"
     ],
-    "correctAnswerIndex": 4
+    "correctAnswerIndex": 3
   },
   {
     "prompt": "Quelle autre langue parle Nathan ?",
@@ -167,7 +167,7 @@
       "Allemand",
       "Italien"
     ],
-    "correctAnswerIndex": 3
+    "correctAnswerIndex": 2
   },
   {
     "prompt": "Quel est son parfum de glace préféré ?",
@@ -177,7 +177,7 @@
       "Chocolat / Pistache",
       "Vanille / Vanille"
     ],
-    "correctAnswerIndex": 1
+    "correctAnswerIndex": 0
   },
   {
     "prompt": "Quel est son artiste musical préféré ?",
@@ -187,7 +187,7 @@
       "Jul",
       "Gazon"
     ],
-    "correctAnswerIndex": 2
+    "correctAnswerIndex": 1
   },
   {
     "prompt": "Quelle est sa destination de rêve ?",
@@ -197,7 +197,7 @@
       "Le Brésil",
       "Le Canada"
     ],
-    "correctAnswerIndex": 2
+    "correctAnswerIndex": 1
   },
   {
     "prompt": "Quelle tâche ménagère déteste-t-il le plus ?",
@@ -207,7 +207,7 @@
       "Vider le lave-vaisselle",
       "Faire la lessive"
     ],
-    "correctAnswerIndex": 2
+    "correctAnswerIndex": 1
   },
   {
     "prompt": "Quelle est sa pizza préférée ?",
@@ -217,7 +217,7 @@
       "Hawaïenne",
       "Reine"
     ],
-    "correctAnswerIndex": 2
+    "correctAnswerIndex": 1
   },
   {
     "prompt": "Quel est son plat signature ?",
@@ -227,7 +227,7 @@
       "Pâtes à la sauce petits pois",
       "Riz au poulet"
     ],
-    "correctAnswerIndex": 3
+    "correctAnswerIndex": 2
   },
   {
     "prompt": "Quel est son acteur préféré ?",
@@ -237,7 +237,7 @@
       "Tom Cruise",
       "Cillian Murphy"
     ],
-    "correctAnswerIndex": 4
+    "correctAnswerIndex": 3
   },
   {
     "prompt": "Quel est son plus grand rêve ?",
@@ -247,7 +247,7 @@
       "Devenir pilote",
       "Ouvrir un garage"
     ],
-    "correctAnswerIndex": 1
+    "correctAnswerIndex": 0
   },
   {
     "prompt": "Quel est son gâteau préféré ?",
@@ -257,7 +257,7 @@
       "Éclair au chocolat",
       "Forêt noire"
     ],
-    "correctAnswerIndex": 2
+    "correctAnswerIndex": 1
   },
   {
     "prompt": "Quelle est sa saison préférée ?",
@@ -267,7 +267,7 @@
       "L’été",
       "L’hiver"
     ],
-    "correctAnswerIndex": 2
+    "correctAnswerIndex": 1
   },
   {
     "prompt": "Quel est le premier sport qu’il a pratiqué ?",
@@ -277,6 +277,6 @@
       "Tennis",
       "Natation"
     ],
-    "correctAnswerIndex": 1
+    "correctAnswerIndex": 0
   }
 ]
