@@ -38,8 +38,10 @@ const playersList = document.getElementById("playersList");
 const readyToggleButton = document.getElementById("readyToggleButton");
 
 const questionSection = document.getElementById("questionSection");
+const rulesSection = document.getElementById("rulesSection");
 const resultSection = document.getElementById("resultSection");
 const endSection = document.getElementById("endSection");
+const rulesTimerLabel = document.getElementById("rulesTimerLabel");
 const questionIndexLabel = document.getElementById("questionIndexLabel");
 const totalQuestionsLabel = document.getElementById("totalQuestionsLabel");
 const timerPill = document.querySelector(".timer-pill");
@@ -47,7 +49,6 @@ const timerLabel = document.getElementById("timerLabel");
 const questionPrompt = document.getElementById("questionPrompt");
 const answersContainer = document.getElementById("answersContainer");
 const answerStateLabel = document.getElementById("answerStateLabel");
-const answerCountLabel = document.getElementById("answerCountLabel");
 const correctAnswerLabel = document.getElementById("correctAnswerLabel");
 const podiumContainer = document.getElementById("podiumContainer");
 const restTableWrapper = document.getElementById("restTableWrapper");
@@ -153,6 +154,7 @@ function renderAvatarPicker() {
 }
 
 function resetGamePanels() {
+  rulesSection.classList.add("hidden");
   questionSection.classList.add("hidden");
   resultSection.classList.add("hidden");
   endSection.classList.add("hidden");
@@ -161,6 +163,7 @@ function resetGamePanels() {
 
 function renderShell() {
   const gameActive =
+    state.roomStatus === "rules" ||
     state.roomStatus === "question" ||
     state.roomStatus === "result" ||
     state.roomStatus === "finished";
@@ -297,6 +300,23 @@ function startCountdown(endsAt) {
   state.timerInterval = window.setInterval(updateTimer, 250);
 }
 
+function renderRules(endsAt) {
+  resetGamePanels();
+  rulesSection.classList.remove("hidden");
+  renderShell();
+
+  window.clearInterval(state.timerInterval);
+
+  function updateRulesTimer() {
+    const remainingMs = Math.max(0, endsAt - getServerNow());
+    const remainingSeconds = Math.ceil(remainingMs / 1000);
+    rulesTimerLabel.textContent = String(remainingSeconds);
+  }
+
+  updateRulesTimer();
+  state.timerInterval = window.setInterval(updateRulesTimer, 250);
+}
+
 function renderQuestion(questionIndex, totalQuestions, question, endsAt) {
   resetGamePanels();
   questionSection.classList.remove("hidden");
@@ -307,7 +327,6 @@ function renderQuestion(questionIndex, totalQuestions, question, endsAt) {
   totalQuestionsLabel.textContent = String(totalQuestions);
   questionPrompt.textContent = question.prompt;
   answerStateLabel.textContent = "Clique pour selectionner ta reponse. Tu peux la changer avant la fin du chrono.";
-  answerCountLabel.textContent = "";
   answersContainer.innerHTML = "";
   const answerLetters = ["A", "B", "C", "D"];
 
@@ -400,6 +419,10 @@ socket.on("room:state", (payload) => {
 
   renderShell();
   renderLobby();
+
+  if (payload.status === "rules" && payload.phaseEndsAt) {
+    renderRules(payload.phaseEndsAt);
+  }
 });
 
 socket.on("room:closed", () => {
@@ -429,14 +452,16 @@ socket.on("question:send", (payload) => {
   );
 });
 
+socket.on("rules:show", (payload) => {
+  syncServerClock(1);
+  state.roomStatus = "rules";
+  renderRules(payload.endsAt);
+});
+
 socket.on("answer:selected", (payload) => {
   state.selectedAnswerIndex = payload.answerIndex;
   answerStateLabel.textContent =
     "Reponse selectionnee. Elle sera validee a la fin du chrono.";
-});
-
-socket.on("answer:count", (payload) => {
-  answerCountLabel.textContent = `${payload.count}/${payload.totalPlayers} joueurs ont repondu`;
 });
 
 socket.on("game:end", (payload) => {

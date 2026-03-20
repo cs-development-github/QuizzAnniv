@@ -22,6 +22,10 @@ function getStatusLabel(status) {
     return "en question";
   }
 
+  if (status === "rules") {
+    return "regles";
+  }
+
   if (status === "result") {
     return "resultat";
   }

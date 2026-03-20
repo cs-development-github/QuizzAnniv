@@ -868,6 +868,28 @@ button:disabled {
   margin: 22px 0;
 }
 
+.rules-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.rules-card {
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(196, 79, 59, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255, 251, 245, 0.98) 0%, rgba(255, 242, 228, 0.96) 100%);
+  box-shadow: 0 12px 24px rgba(126, 57, 36, 0.08);
+}
+
+.rules-card strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 1.02rem;
+}
+
 .answers-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1062,6 +1084,7 @@ button:disabled {
   .waiting-layout,
   .admin-summary,
   .podium-grid,
+  .rules-grid,
   .answers-grid {
     grid-template-columns: 1fr;
   }

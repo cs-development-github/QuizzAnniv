@@ -8,6 +8,7 @@ const {
 
 const QUESTION_TIME_LIMIT_MS = 20000;
 const CORRECT_ANSWER_POINTS = 10;
+const RULES_SCREEN_MS = 40000;
 const ROOM_ID_LENGTH = 8;
 const AVATAR_STYLE = "fun-emoji";
 
@@ -66,6 +67,7 @@ function createRoom(roomId) {
       status: "lobby",
       timer: null,
       questionStartedAt: null,
+      phaseEndsAt: null,
     });
   }
 
@@ -133,6 +135,7 @@ function emitRoomSnapshot(io, room, socket = null) {
     totalQuestions: room.questions.length,
     canStart: canStartGame(room),
     readyCount: room.players.filter((player) => player.isReady).length,
+    phaseEndsAt: room.phaseEndsAt,
   };
 
   if (socket) {
@@ -152,6 +155,7 @@ function emitAdminSnapshot(io, room, socket = null) {
     totalQuestions: room.questions.length,
     canStart: canStartGame(room),
     readyCount: room.players.filter((player) => player.isReady).length,
+    phaseEndsAt: room.phaseEndsAt,
   };
 
   if (socket) {
@@ -214,6 +218,7 @@ function closeRoomById(io, roomId) {
 
 function finishGame(io, room) {
   room.status = "finished";
+  room.phaseEndsAt = null;
 
   const payload = {
     leaderboard: getLeaderboard(room),
@@ -223,6 +228,28 @@ function finishGame(io, room) {
   io.to(getAdminChannel(room.id)).emit("game:end", payload);
 
   emitFullState(io, room);
+}
+
+function startRulesPhase(io, room) {
+  if (room.timer) {
+    clearTimeout(room.timer);
+  }
+
+  room.status = "rules";
+  room.phaseEndsAt = Date.now() + RULES_SCREEN_MS;
+
+  const payload = {
+    endsAt: room.phaseEndsAt,
+    durationMs: RULES_SCREEN_MS,
+  };
+
+  io.to(getRoomChannel(room.id)).emit("rules:show", payload);
+  io.to(getAdminChannel(room.id)).emit("rules:show", payload);
+  emitFullState(io, room);
+
+  room.timer = setTimeout(() => {
+    advanceToQuestion(io, room);
+  }, RULES_SCREEN_MS);
 }
 
 function advanceToQuestion(io, room) {
@@ -237,12 +264,13 @@ function advanceToQuestion(io, room) {
   room.answers = {};
   room.questionStartedAt = Date.now();
   room.status = "question";
+  room.phaseEndsAt = room.questionStartedAt + QUESTION_TIME_LIMIT_MS;
 
   const payload = {
     questionIndex: room.currentQuestionIndex,
     totalQuestions: room.questions.length,
     question: sanitizeQuestionForClient(question),
-    endsAt: room.questionStartedAt + QUESTION_TIME_LIMIT_MS,
+    endsAt: room.phaseEndsAt,
     durationMs: QUESTION_TIME_LIMIT_MS,
   };
 
@@ -265,6 +293,8 @@ function finishQuestion(io, room) {
     clearTimeout(room.timer);
     room.timer = null;
   }
+
+  room.phaseEndsAt = null;
 
   const question = room.questions[room.currentQuestionIndex];
   const correctAnswerIndex = getCorrectAnswerIndex(question);
@@ -385,7 +415,7 @@ function handleGameStart(io, socket) {
     return;
   }
 
-  advanceToQuestion(io, room);
+  startRulesPhase(io, room);
 }
 
 function handleReadyToggle(io, socket, payload) {

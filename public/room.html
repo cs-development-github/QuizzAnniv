@@ -70,6 +70,46 @@
       </section>
 
       <section id="gameView" class="view-card hidden">
+        <div id="rulesSection" class="stack-card hidden">
+          <div class="question-head">
+            <div>
+              <p class="section-kicker">Avant de jouer</p>
+              <h2>Regles du quiz</h2>
+            </div>
+            <div class="timer-pill">
+              <span>Depart</span>
+              <strong id="rulesTimerLabel">9</strong>
+            </div>
+          </div>
+
+          <div class="rules-grid">
+            <article class="rules-card">
+              <strong>20 secondes pour repondre</strong>
+              <p class="helper-text">Le chrono est le meme pour tout le monde.</p>
+            </article>
+            <article class="rules-card">
+              <strong>Une seule reponse par question</strong>
+              <p class="helper-text">Tu peux changer ton choix tant que le chrono tourne.</p>
+            </article>
+            <article class="rules-card">
+              <strong>Validation automatique</strong>
+              <p class="helper-text">Pas besoin de bouton envoyer, ta selection est prise en compte.</p>
+            </article>
+            <article class="rules-card">
+              <strong>Bonne reponse = 10 points</strong>
+              <p class="helper-text">Mauvaise reponse ou absence de reponse = 0 point.</p>
+            </article>
+            <article class="rules-card">
+              <strong>Reste attentif jusqu'au bout</strong>
+              <p class="helper-text">La question suivante arrive automatiquement juste apres.</p>
+            </article>
+            <article class="rules-card">
+              <strong>Joue en solo</strong>
+              <p class="helper-text">Le but est de repondre vite et honnêtement, sans aide exterieure.</p>
+            </article>
+          </div>
+        </div>
+
         <div id="questionSection" class="stack-card hidden">
           <div class="question-head">
             <div>
@@ -85,7 +125,6 @@
           <p id="questionPrompt" class="question-prompt">En attente du lancement...</p>
           <div id="answersContainer" class="answers-grid"></div>
           <p id="answerStateLabel" class="status-copy"></p>
-          <p id="answerCountLabel" class="helper-text"></p>
         </div>
 
         <div id="resultSection" class="stack-card hidden">

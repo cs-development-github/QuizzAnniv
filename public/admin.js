@@ -23,9 +23,11 @@ const participantHint = document.getElementById("participantHint");
 const startGameButton = document.getElementById("startGameButton");
 
 const gameView = document.getElementById("gameView");
+const rulesSection = document.getElementById("rulesSection");
 const questionSection = document.getElementById("questionSection");
 const resultSection = document.getElementById("resultSection");
 const endSection = document.getElementById("endSection");
+const rulesTimerLabel = document.getElementById("rulesTimerLabel");
 const questionIndexLabel = document.getElementById("questionIndexLabel");
 const totalQuestionsLabel = document.getElementById("totalQuestionsLabel");
 const timerPill = document.querySelector(".timer-pill");
@@ -106,6 +108,7 @@ function getAvatarUrl(avatar, size = 96) {
 }
 
 function resetGamePanels() {
+  rulesSection.classList.add("hidden");
   questionSection.classList.add("hidden");
   resultSection.classList.add("hidden");
   endSection.classList.add("hidden");
@@ -165,6 +168,7 @@ function renderAdminCard() {
 
 function renderShell() {
   const gameActive =
+    state.roomStatus === "rules" ||
     state.roomStatus === "question" ||
     state.roomStatus === "result" ||
     state.roomStatus === "finished";
@@ -233,6 +237,23 @@ function startCountdown(endsAt) {
   state.timerInterval = window.setInterval(updateTimer, 250);
 }
 
+function renderRules(endsAt) {
+  resetGamePanels();
+  rulesSection.classList.remove("hidden");
+  renderShell();
+
+  window.clearInterval(state.timerInterval);
+
+  function updateRulesTimer() {
+    const remainingMs = Math.max(0, endsAt - getServerNow());
+    const remainingSeconds = Math.ceil(remainingMs / 1000);
+    rulesTimerLabel.textContent = String(remainingSeconds);
+  }
+
+  updateRulesTimer();
+  state.timerInterval = window.setInterval(updateRulesTimer, 250);
+}
+
 createRoomButton.addEventListener("click", async () => {
   createRoomButton.disabled = true;
 
@@ -282,6 +303,10 @@ socket.on("admin:state", (payload) => {
   state.roomStatus = payload.status;
   renderAdminCard();
   renderShell();
+
+  if (payload.status === "rules" && payload.phaseEndsAt) {
+    renderRules(payload.phaseEndsAt);
+  }
 });
 
 socket.on("question:send", (payload) => {
@@ -296,6 +321,12 @@ socket.on("question:send", (payload) => {
   answerCountLabel.textContent = "";
   renderShell();
   startCountdown(payload.endsAt);
+});
+
+socket.on("rules:show", (payload) => {
+  syncServerClock(1);
+  state.roomStatus = "rules";
+  renderRules(payload.endsAt);
 });
 
 socket.on("answer:count", (payload) => {
