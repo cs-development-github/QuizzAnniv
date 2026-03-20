@@ -7,6 +7,7 @@ const state = {
   roomStatus: "idle",
   timerInterval: null,
   currentQuestion: null,
+  serverTimeOffsetMs: 0,
 };
 
 const errorBanner = document.getElementById("errorBanner");
@@ -14,9 +15,7 @@ const createRoomButton = document.getElementById("createRoomButton");
 const createRoomCard = document.getElementById("createRoomCard");
 const roomLiveCard = document.getElementById("roomLiveCard");
 const roomIdLabel = document.getElementById("roomIdLabel");
-const roomStatusLabel = document.getElementById("roomStatusLabel");
 const qrCodeImage = document.getElementById("qrCodeImage");
-const joinUrlLink = document.getElementById("joinUrlLink");
 const connectedCountLabel = document.getElementById("connectedCountLabel");
 const readyCountLabel = document.getElementById("readyCountLabel");
 const playersList = document.getElementById("playersList");
@@ -48,6 +47,47 @@ function showError(message) {
   showError.timeoutId = window.setTimeout(() => {
     errorBanner.classList.add("hidden");
   }, 4000);
+}
+
+function getServerNow() {
+  return Date.now() + state.serverTimeOffsetMs;
+}
+
+function syncServerClock(sampleCount = 3) {
+  if (!socket.connected) {
+    return;
+  }
+
+  const offsets = [];
+  let completed = 0;
+
+  function collectSample() {
+    const startedAt = Date.now();
+
+    socket.emit("time:sync", (payload) => {
+      const receivedAt = Date.now();
+      const roundTripMs = receivedAt - startedAt;
+      const serverTime = Number(payload?.serverTime);
+
+      if (Number.isFinite(serverTime)) {
+        offsets.push(serverTime + roundTripMs / 2 - receivedAt);
+      }
+
+      completed += 1;
+
+      if (completed >= sampleCount) {
+        if (offsets.length > 0) {
+          offsets.sort((left, right) => left - right);
+          state.serverTimeOffsetMs = offsets[Math.floor(offsets.length / 2)];
+        }
+        return;
+      }
+
+      window.setTimeout(collectSample, 120);
+    });
+  }
+
+  collectSample();
 }
 
 function getAvatarUrl(avatar, size = 96) {
@@ -117,7 +157,6 @@ function renderAdminCard() {
 
   const readyPlayers = state.players.filter((player) => player.isReady).length;
   roomIdLabel.textContent = state.roomId;
-  roomStatusLabel.textContent = state.roomStatus;
   connectedCountLabel.textContent = String(state.players.length);
   readyCountLabel.textContent = `${readyPlayers}/${state.players.length}`;
   startGameButton.disabled = !state.canStart;
@@ -183,7 +222,7 @@ function startCountdown(endsAt) {
   window.clearInterval(state.timerInterval);
 
   function updateTimer() {
-    const remainingMs = Math.max(0, endsAt - Date.now());
+    const remainingMs = Math.max(0, endsAt - getServerNow());
     const remainingSeconds = Math.ceil(remainingMs / 1000);
 
     timerLabel.textContent = String(remainingSeconds);
@@ -213,8 +252,6 @@ createRoomButton.addEventListener("click", async () => {
     const payload = await response.json();
     state.roomId = payload.roomId;
     qrCodeImage.src = payload.qrCodeDataUrl;
-    joinUrlLink.href = payload.joinUrl;
-    joinUrlLink.textContent = payload.joinUrl;
     socket.emit("admin:join", { roomId: payload.roomId });
     renderAdminCard();
   } catch (error) {
@@ -234,6 +271,7 @@ socket.on("error:message", (payload) => {
 socket.on("admin:joined", (payload) => {
   state.roomId = payload.roomId;
   createRoomButton.disabled = false;
+  syncServerClock();
   renderAdminCard();
 });
 
@@ -247,6 +285,7 @@ socket.on("admin:state", (payload) => {
 });
 
 socket.on("question:send", (payload) => {
+  syncServerClock(1);
   state.roomStatus = "question";
   state.currentQuestion = payload.question;
   resetGamePanels();
@@ -278,13 +317,15 @@ socket.on("room:closed", () => {
   state.canStart = false;
   state.roomStatus = "idle";
   qrCodeImage.src = "";
-  joinUrlLink.removeAttribute("href");
-  joinUrlLink.textContent = "Ouvrir le lien de la room";
   window.clearInterval(state.timerInterval);
   resetGamePanels();
   renderAdminCard();
   renderShell();
   showError("La room a ete fermee.");
+});
+
+socket.on("connect", () => {
+  syncServerClock();
 });
 
 renderAdminCard();

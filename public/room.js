@@ -15,6 +15,7 @@ const state = {
   pendingAvatar: null,
   roomExists: false,
   roomJoinable: false,
+  serverTimeOffsetMs: 0,
 };
 
 const AVATAR_STYLE = "fun-emoji";
@@ -60,6 +61,47 @@ function showError(message) {
   showError.timeoutId = window.setTimeout(() => {
     errorBanner.classList.add("hidden");
   }, 4000);
+}
+
+function getServerNow() {
+  return Date.now() + state.serverTimeOffsetMs;
+}
+
+function syncServerClock(sampleCount = 3) {
+  if (!socket.connected) {
+    return;
+  }
+
+  const offsets = [];
+  let completed = 0;
+
+  function collectSample() {
+    const startedAt = Date.now();
+
+    socket.emit("time:sync", (payload) => {
+      const receivedAt = Date.now();
+      const roundTripMs = receivedAt - startedAt;
+      const serverTime = Number(payload?.serverTime);
+
+      if (Number.isFinite(serverTime)) {
+        offsets.push(serverTime + roundTripMs / 2 - receivedAt);
+      }
+
+      completed += 1;
+
+      if (completed >= sampleCount) {
+        if (offsets.length > 0) {
+          offsets.sort((left, right) => left - right);
+          state.serverTimeOffsetMs = offsets[Math.floor(offsets.length / 2)];
+        }
+        return;
+      }
+
+      window.setTimeout(collectSample, 120);
+    });
+  }
+
+  collectSample();
 }
 
 function getCurrentPlayer() {
@@ -244,7 +286,7 @@ function startCountdown(endsAt) {
   window.clearInterval(state.timerInterval);
 
   function updateTimer() {
-    const remainingMs = Math.max(0, endsAt - Date.now());
+    const remainingMs = Math.max(0, endsAt - getServerNow());
     const remainingSeconds = Math.ceil(remainingMs / 1000);
 
     timerLabel.textContent = String(remainingSeconds);
@@ -323,6 +365,7 @@ shuffleAvatarsButton.addEventListener("click", () => {
 });
 
 socket.on("connect", () => {
+  syncServerClock();
   socket.emit("room:status", { roomId: state.roomId });
 });
 
@@ -376,6 +419,7 @@ socket.on("room:closed", () => {
 });
 
 socket.on("question:send", (payload) => {
+  syncServerClock(1);
   state.roomStatus = "question";
   renderQuestion(
     payload.questionIndex,

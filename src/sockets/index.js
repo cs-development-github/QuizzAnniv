@@ -7,7 +7,7 @@ const {
 } = require("../utils/questions");
 
 const QUESTION_TIME_LIMIT_MS = 20000;
-const BASE_POINTS = 100;
+const CORRECT_ANSWER_POINTS = 10;
 const ROOM_ID_LENGTH = 8;
 const AVATAR_STYLE = "fun-emoji";
 
@@ -225,13 +225,6 @@ function finishGame(io, room) {
   emitFullState(io, room);
 }
 
-function calculateSpeedBonus(answeredAt, questionStartedAt) {
-  const elapsedMs = Math.max(0, answeredAt - questionStartedAt);
-  const remainingRatio = Math.max(0, QUESTION_TIME_LIMIT_MS - elapsedMs) / QUESTION_TIME_LIMIT_MS;
-
-  return Math.round(remainingRatio * 50);
-}
-
 function advanceToQuestion(io, room) {
   room.currentQuestionIndex += 1;
 
@@ -277,10 +270,7 @@ function finishQuestion(io, room) {
   const correctAnswerIndex = getCorrectAnswerIndex(question);
   Object.values(room.answers).forEach((answer) => {
     const isCorrect = answer.answerIndex === correctAnswerIndex;
-    const speedBonus = isCorrect
-      ? calculateSpeedBonus(answer.selectedAt, room.questionStartedAt)
-      : 0;
-    const pointsEarned = isCorrect ? BASE_POINTS + speedBonus : 0;
+    const pointsEarned = isCorrect ? CORRECT_ANSWER_POINTS : 0;
 
     answer.isCorrect = isCorrect;
     answer.pointsEarned = pointsEarned;
@@ -471,13 +461,10 @@ function handleAnswerSubmit(io, socket, payload) {
     return;
   }
 
-  const selectedAt = Date.now();
-
   room.answers[socket.id] = {
     playerId: socket.id,
     name: socket.data.nickname,
     answerIndex: selectedAnswerIndex,
-    selectedAt,
   };
 
   socket.emit("answer:selected", {
@@ -502,12 +489,6 @@ function removeSocketFromRoom(io, socket, room) {
 
   if (socket.data.role === "admin") {
     room.admins = room.admins.filter((admin) => admin.id !== socket.id);
-
-    if (room.admins.length === 0) {
-      closeRoom(io, room);
-      return;
-    }
-
     emitAdminSnapshot(io, room);
     return;
   }
@@ -515,16 +496,16 @@ function removeSocketFromRoom(io, socket, room) {
   room.players = room.players.filter((player) => player.id !== socket.id);
   delete room.answers[socket.id];
 
-  if (room.players.length === 0) {
-    closeRoom(io, room);
-    return;
-  }
-
   emitFullState(io, room);
 }
 
 function registerSocketHandlers(io) {
   io.on("connection", (socket) => {
+    socket.on("time:sync", (ack) => {
+      if (typeof ack === "function") {
+        ack({ serverTime: Date.now() });
+      }
+    });
     socket.on("admin:join", (payload) => handleAdminJoin(io, socket, payload));
     socket.on("room:status", (payload) => handleRoomStatusRequest(io, socket, payload));
     socket.on("room:join", (payload) => handleRoomJoin(io, socket, payload));

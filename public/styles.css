@@ -356,10 +356,15 @@ h3 {
   padding: 24px;
 }
 
+.admin-stage-card {
+  background:
+    linear-gradient(180deg, rgba(255, 252, 247, 0.98) 0%, rgba(255, 239, 223, 0.96) 100%);
+}
+
 .admin-layout,
 .waiting-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.7fr);
   gap: 18px;
   align-items: start;
 }
@@ -561,6 +566,7 @@ button:disabled {
   flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 18px;
+  justify-content: flex-end;
 }
 
 .room-badge {
@@ -611,30 +617,64 @@ button:disabled {
 }
 
 .qr-block {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 18px;
-  align-items: center;
-  padding: 18px;
+  display: block;
+  padding: 22px;
   margin-bottom: 18px;
+  border-radius: 28px;
+  background:
+    linear-gradient(135deg, rgba(255, 251, 245, 0.99), rgba(255, 236, 219, 0.94));
+  border: 1px solid rgba(196, 79, 59, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.qr-stage {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 14px;
+  min-height: 100%;
+  padding: 18px;
   border-radius: 24px;
   background:
-    linear-gradient(135deg, rgba(255, 247, 235, 0.98), rgba(255, 236, 219, 0.9));
-  border: 1px solid rgba(196, 79, 59, 0.14);
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.82) 48%, rgba(255, 245, 234, 0.94) 100%);
+  border: 1px solid rgba(196, 79, 59, 0.12);
+}
+
+.room-code-display {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  opacity: 0.82;
+}
+
+.room-code-label {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.room-code-display strong {
+  font-family: "Avenir Next", "Trebuchet MS", "Segoe UI", sans-serif;
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  line-height: 1;
+  letter-spacing: 0.18em;
+  color: var(--muted);
 }
 
 .qr-code {
-  width: min(100%, 220px);
+  width: min(100%, 520px);
+  min-width: min(100%, 360px);
   aspect-ratio: 1;
-  border-radius: 22px;
-  border: 10px solid rgba(255, 255, 255, 0.92);
+  padding: 16px;
+  border-radius: 30px;
+  border: 14px solid rgba(255, 255, 255, 0.98);
   background: #fff;
-  box-shadow: var(--shadow-soft);
-}
-
-.qr-copy {
-  display: grid;
-  gap: 10px;
+  box-shadow:
+    0 24px 55px rgba(45, 31, 36, 0.12),
+    0 0 0 1px rgba(45, 31, 36, 0.06);
 }
 
 .avatar-option,
@@ -1050,6 +1090,15 @@ button:disabled {
 
   .qr-block {
     grid-template-columns: 1fr;
+  }
+
+  .qr-stage {
+    padding: 14px;
+  }
+
+  .qr-code {
+    min-width: 0;
+    width: min(100%, 440px);
   }
 
   .room-admin-head {
