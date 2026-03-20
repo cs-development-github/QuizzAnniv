@@ -9,7 +9,7 @@ const state = {
   players: [],
   canStart: false,
   currentQuestion: null,
-  hasAnswered: false,
+  selectedAnswerIndex: null,
   timerInterval: null,
   roomStatus: "missing",
   pendingAvatar: null,
@@ -260,31 +260,30 @@ function renderQuestion(questionIndex, totalQuestions, question, endsAt) {
   questionSection.classList.remove("hidden");
 
   state.currentQuestion = question;
-  state.hasAnswered = false;
+  state.selectedAnswerIndex = null;
   questionIndexLabel.textContent = String(questionIndex + 1);
   totalQuestionsLabel.textContent = String(totalQuestions);
   questionPrompt.textContent = question.prompt;
-  answerStateLabel.textContent = "";
+  answerStateLabel.textContent = "Clique pour selectionner ta reponse. Tu peux la changer avant la fin du chrono.";
   answerCountLabel.textContent = "";
   answersContainer.innerHTML = "";
+  const answerLetters = ["A", "B", "C", "D"];
 
   question.answers.forEach((answer, index) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.textContent = answer;
     button.classList.add(`answer-choice-${index + 1}`);
+    button.innerHTML = `
+      <span class="answer-choice-letter">${answerLetters[index] || index + 1}</span>
+      <span class="answer-choice-text">${answer}</span>
+    `;
     button.addEventListener("click", () => {
-      if (state.hasAnswered) {
-        return;
-      }
-
-      state.hasAnswered = true;
-      answerStateLabel.textContent = "Reponse envoyee. Suspense...";
-
-      Array.from(answersContainer.querySelectorAll("button")).forEach((entry) => {
-        entry.disabled = true;
+      state.selectedAnswerIndex = index;
+      Array.from(answersContainer.querySelectorAll("button")).forEach((entry, entryIndex) => {
+        entry.classList.toggle("answer-choice-selected", entryIndex === index);
       });
-
+      answerStateLabel.textContent =
+        "Reponse selectionnee. Tu peux encore changer d'avis avant la fin du chrono.";
       socket.emit("answer:submit", { answerIndex: index });
     });
 
@@ -386,27 +385,14 @@ socket.on("question:send", (payload) => {
   );
 });
 
-socket.on("answer:submitted", (payload) => {
-  answerStateLabel.textContent = payload.isCorrect
-    ? `Bonne reponse ! +${payload.pointsEarned} points`
-    : "Reponse envoyee. Verdict a la fin du chrono.";
+socket.on("answer:selected", (payload) => {
+  state.selectedAnswerIndex = payload.answerIndex;
+  answerStateLabel.textContent =
+    "Reponse selectionnee. Elle sera validee a la fin du chrono.";
 });
 
 socket.on("answer:count", (payload) => {
   answerCountLabel.textContent = `${payload.count}/${payload.totalPlayers} joueurs ont repondu`;
-});
-
-socket.on("question:result", (payload) => {
-  state.roomStatus = "result";
-  resetGamePanels();
-  resultSection.classList.remove("hidden");
-  window.clearInterval(state.timerInterval);
-
-  if (state.currentQuestion) {
-    correctAnswerLabel.textContent = `Bonne reponse : ${state.currentQuestion.answers[payload.correctAnswerIndex]}`;
-  }
-
-  renderShell();
 });
 
 socket.on("game:end", (payload) => {

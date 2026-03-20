@@ -275,23 +275,24 @@ function finishQuestion(io, room) {
 
   const question = room.questions[room.currentQuestionIndex];
   const correctAnswerIndex = getCorrectAnswerIndex(question);
+  Object.values(room.answers).forEach((answer) => {
+    const isCorrect = answer.answerIndex === correctAnswerIndex;
+    const speedBonus = isCorrect
+      ? calculateSpeedBonus(answer.selectedAt, room.questionStartedAt)
+      : 0;
+    const pointsEarned = isCorrect ? BASE_POINTS + speedBonus : 0;
 
-  room.status = "result";
+    answer.isCorrect = isCorrect;
+    answer.pointsEarned = pointsEarned;
 
-  const payload = {
-    correctAnswerIndex,
-    leaderboard: getLeaderboard(room),
-    answers: Object.values(room.answers),
-  };
+    const player = room.players.find((entry) => entry.id === answer.playerId);
 
-  io.to(getRoomChannel(room.id)).emit("question:result", payload);
-  io.to(getAdminChannel(room.id)).emit("question:result", payload);
+    if (player) {
+      player.score += pointsEarned;
+    }
+  });
 
-  emitFullState(io, room);
-
-  room.timer = setTimeout(() => {
-    advanceToQuestion(io, room);
-  }, 5000);
+  advanceToQuestion(io, room);
 }
 
 function handleAdminJoin(io, socket, payload) {
@@ -458,52 +459,31 @@ function handleAnswerSubmit(io, socket, payload) {
     return;
   }
 
-  if (room.answers[socket.id]) {
-    emitError(socket, "Une seule reponse par question.");
-    return;
-  }
-
   const selectedAnswerIndex = Number(payload?.answerIndex);
   const currentQuestion = room.questions[room.currentQuestionIndex];
 
-  if (!Number.isInteger(selectedAnswerIndex) || selectedAnswerIndex < 0 || selectedAnswerIndex > 3) {
+  if (
+    !Number.isInteger(selectedAnswerIndex) ||
+    selectedAnswerIndex < 0 ||
+    selectedAnswerIndex >= currentQuestion.answers.length
+  ) {
     emitError(socket, "Reponse invalide.");
     return;
   }
 
-  const answeredAt = Date.now();
-  const correctAnswerIndex = getCorrectAnswerIndex(currentQuestion);
-  const isCorrect = selectedAnswerIndex === correctAnswerIndex;
-  const speedBonus = isCorrect ? calculateSpeedBonus(answeredAt, room.questionStartedAt) : 0;
-  const pointsEarned = isCorrect ? BASE_POINTS + speedBonus : 0;
+  const selectedAt = Date.now();
 
   room.answers[socket.id] = {
     playerId: socket.id,
     name: socket.data.nickname,
     answerIndex: selectedAnswerIndex,
-    isCorrect,
-    pointsEarned,
-    answeredAt,
+    selectedAt,
   };
 
-  const player = room.players.find((entry) => entry.id === socket.id);
-
-  if (player) {
-    player.score += pointsEarned;
-  }
-
-  socket.emit("answer:submitted", {
+  socket.emit("answer:selected", {
     accepted: true,
-    isCorrect,
-    pointsEarned,
+    answerIndex: selectedAnswerIndex,
   });
-
-  const everyoneAnswered = room.players.every((playerEntry) => room.answers[playerEntry.id]);
-
-  if (everyoneAnswered) {
-    finishQuestion(io, room);
-    return;
-  }
 
   const countPayload = {
     count: Object.keys(room.answers).length,

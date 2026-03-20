@@ -263,19 +263,6 @@ socket.on("answer:count", (payload) => {
   answerCountLabel.textContent = `${payload.count}/${payload.totalPlayers} joueurs ont repondu`;
 });
 
-socket.on("question:result", (payload) => {
-  state.roomStatus = "result";
-  resetGamePanels();
-  resultSection.classList.remove("hidden");
-  window.clearInterval(state.timerInterval);
-
-  if (state.currentQuestion) {
-    correctAnswerLabel.textContent = `Bonne reponse : ${state.currentQuestion.answers[payload.correctAnswerIndex]}`;
-  }
-
-  renderShell();
-});
-
 socket.on("game:end", (payload) => {
   state.roomStatus = "finished";
   resetGamePanels();
