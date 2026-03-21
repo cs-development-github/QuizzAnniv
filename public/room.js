@@ -44,7 +44,7 @@ const rulesTimerLabel = document.getElementById("rulesTimerLabel");
 const resultTimerLabel = document.getElementById("resultTimerLabel");
 const questionIndexLabel = document.getElementById("questionIndexLabel");
 const totalQuestionsLabel = document.getElementById("totalQuestionsLabel");
-const timerPill = document.querySelector(".timer-pill");
+const questionTimerPill = questionSection.querySelector(".timer-pill");
 const timerLabel = document.getElementById("timerLabel");
 const questionPrompt = document.getElementById("questionPrompt");
 const answersContainer = document.getElementById("answersContainer");
@@ -158,7 +158,8 @@ function resetGamePanels() {
   questionSection.classList.add("hidden");
   resultSection.classList.add("hidden");
   endSection.classList.add("hidden");
-  timerPill.classList.remove("timer-pill-danger");
+  endSection.classList.remove("finale-active");
+  questionTimerPill.classList.remove("timer-pill-danger");
 }
 
 function renderShell() {
@@ -210,6 +211,7 @@ function renderLobby() {
 }
 
 function renderFinalLeaderboard(leaderboard) {
+  endSection.classList.remove("finale-active");
   podiumContainer.innerHTML = "";
   restLeaderboardBody.innerHTML = "";
 
@@ -225,6 +227,7 @@ function renderFinalLeaderboard(leaderboard) {
 
     const card = document.createElement("article");
     card.className = `podium-card rank-${entry.rank}`;
+    card.style.setProperty("--reveal-delay", `${160 + podiumContainer.children.length * 180}ms`);
     card.innerHTML = `
       <div class="player-avatar podium-avatar">
         <img src="${getAvatarUrl(entry.avatar, 88)}" alt="" />
@@ -238,6 +241,7 @@ function renderFinalLeaderboard(leaderboard) {
 
   const remainingPlayers = leaderboard.slice(3);
   restTableWrapper.classList.toggle("hidden", remainingPlayers.length === 0);
+  restTableWrapper.style.setProperty("--reveal-delay", `${160 + topThree.length * 180}ms`);
 
   remainingPlayers.forEach((entry) => {
     const row = document.createElement("tr");
@@ -253,6 +257,10 @@ function renderFinalLeaderboard(leaderboard) {
     `;
     restLeaderboardBody.appendChild(row);
   });
+
+  window.requestAnimationFrame(() => {
+    endSection.classList.add("finale-active");
+  });
 }
 
 function startCountdown(endsAt) {
@@ -263,7 +271,7 @@ function startCountdown(endsAt) {
     const remainingSeconds = Math.ceil(remainingMs / 1000);
 
     timerLabel.textContent = String(remainingSeconds);
-    timerPill.classList.toggle("timer-pill-danger", remainingSeconds <= 5 && remainingMs > 0);
+    questionTimerPill.classList.toggle("timer-pill-danger", remainingSeconds <= 5 && remainingMs > 0);
   }
 
   updateTimer();

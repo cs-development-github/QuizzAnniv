@@ -23,6 +23,7 @@ const playersList = document.getElementById("playersList");
 const participantHint = document.getElementById("participantHint");
 const startGameButton = document.getElementById("startGameButton");
 
+const lobbyView = document.getElementById("lobbyView");
 const gameView = document.getElementById("gameView");
 const rulesSection = document.getElementById("rulesSection");
 const questionSection = document.getElementById("questionSection");
@@ -32,10 +33,9 @@ const rulesTimerLabel = document.getElementById("rulesTimerLabel");
 const resultTimerLabel = document.getElementById("resultTimerLabel");
 const questionIndexLabel = document.getElementById("questionIndexLabel");
 const totalQuestionsLabel = document.getElementById("totalQuestionsLabel");
-const timerPill = document.querySelector(".timer-pill");
+const questionTimerPill = questionSection.querySelector(".timer-pill");
 const timerLabel = document.getElementById("timerLabel");
 const questionPrompt = document.getElementById("questionPrompt");
-const answerCountLabel = document.getElementById("answerCountLabel");
 const correctAnswerLabel = document.getElementById("correctAnswerLabel");
 const podiumContainer = document.getElementById("podiumContainer");
 const restTableWrapper = document.getElementById("restTableWrapper");
@@ -206,7 +206,8 @@ function resetGamePanels() {
   questionSection.classList.add("hidden");
   resultSection.classList.add("hidden");
   endSection.classList.add("hidden");
-  timerPill.classList.remove("timer-pill-danger");
+  endSection.classList.remove("finale-active");
+  questionTimerPill.classList.remove("timer-pill-danger");
 }
 
 function renderPlayers() {
@@ -268,11 +269,13 @@ function renderShell() {
     state.roomStatus === "result" ||
     state.roomStatus === "finished";
 
+  lobbyView.classList.toggle("hidden", gameActive);
   gameView.classList.toggle("hidden", !gameActive);
   syncAudioState();
 }
 
 function renderFinalLeaderboard(leaderboard) {
+  endSection.classList.remove("finale-active");
   podiumContainer.innerHTML = "";
   restLeaderboardBody.innerHTML = "";
 
@@ -288,6 +291,7 @@ function renderFinalLeaderboard(leaderboard) {
 
     const card = document.createElement("article");
     card.className = `podium-card rank-${entry.rank}`;
+    card.style.setProperty("--reveal-delay", `${160 + podiumContainer.children.length * 180}ms`);
     card.innerHTML = `
       <div class="player-avatar podium-avatar">
         <img src="${getAvatarUrl(entry.avatar, 88)}" alt="" />
@@ -301,6 +305,7 @@ function renderFinalLeaderboard(leaderboard) {
 
   const remainingPlayers = leaderboard.slice(3);
   restTableWrapper.classList.toggle("hidden", remainingPlayers.length === 0);
+  restTableWrapper.style.setProperty("--reveal-delay", `${160 + topThree.length * 180}ms`);
 
   remainingPlayers.forEach((entry) => {
     const row = document.createElement("tr");
@@ -316,6 +321,10 @@ function renderFinalLeaderboard(leaderboard) {
     `;
     restLeaderboardBody.appendChild(row);
   });
+
+  window.requestAnimationFrame(() => {
+    endSection.classList.add("finale-active");
+  });
 }
 
 function startCountdown(endsAt) {
@@ -326,7 +335,7 @@ function startCountdown(endsAt) {
     const remainingSeconds = Math.ceil(remainingMs / 1000);
 
     timerLabel.textContent = String(remainingSeconds);
-    timerPill.classList.toggle("timer-pill-danger", remainingSeconds <= 5 && remainingMs > 0);
+    questionTimerPill.classList.toggle("timer-pill-danger", remainingSeconds <= 5 && remainingMs > 0);
   }
 
   updateTimer();
@@ -455,7 +464,6 @@ socket.on("question:send", (payload) => {
   questionIndexLabel.textContent = String(payload.questionIndex + 1);
   totalQuestionsLabel.textContent = String(payload.totalQuestions);
   questionPrompt.textContent = payload.question.prompt;
-  answerCountLabel.textContent = "";
   renderShell();
   timerAudio.currentTime = 0;
   safePlay(timerAudio);
@@ -474,10 +482,6 @@ socket.on("question:transition", (payload) => {
   syncServerClock(1);
   state.roomStatus = "result";
   renderQuestionTransition(payload.endsAt, payload.nextQuestionIndex, payload.totalQuestions);
-});
-
-socket.on("answer:count", (payload) => {
-  answerCountLabel.textContent = `${payload.count}/${payload.totalPlayers} joueurs ont repondu`;
 });
 
 socket.on("game:end", (payload) => {
