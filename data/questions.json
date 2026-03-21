@@ -18,5 +18,265 @@
       "Vert"
     ],
     "correctAnswerIndex": 2
+  },
+  {
+    "prompt": "Quel est son dessin animé préféré ?",
+    "answers": [
+      "One piece",
+      "Cars",
+      "Toy story",
+      "Winnie l'ourson"
+    ],
+    "correctAnswerIndex": 0
+  },
+  {
+    "prompt": "Quel est son film préféré ?",
+    "answers": [
+      "Fast & Furious 7",
+      "Need for Speed",
+      "Taxi 4",
+      "Fast & Furious 2"
+    ],
+    "correctAnswerIndex": 3
+  },
+  {
+    "prompt": "Quelle est sa série préférée ?",
+    "answers": [
+      "Peaky Blinders",
+      "Prison Break",
+      "Les Frères Scott",
+      "Breaking Bad"
+    ],
+    "correctAnswerIndex": 0
+  },
+  {
+    "prompt": "Quel est son plat préféré ?",
+    "answers": [
+      "Pizza",
+      "Tacos",
+      "Burger",
+      "Kebab"
+    ],
+    "correctAnswerIndex": 1
+  },
+  {
+    "prompt": "Quelle est sa plus grande qualité ?",
+    "answers": [
+      "Être très patient",
+      "Être très organisé",
+      "Être très drôle",
+      "Être à l’écoute des autres"
+    ],
+    "correctAnswerIndex": 3
+  },
+  {
+    "prompt": "Quel est son plus gros défaut ?",
+    "answers": [
+      "L'impulsivité",
+      "La timidité",
+      "La jalousie",
+      "La paresse"
+    ],
+    "correctAnswerIndex": 2
+  },
+  {
+    "prompt": "Quelle est sa voiture de rêve ?",
+    "answers": [
+      "Lamborghini Huracán",
+      "BMW M3 E36",
+      "Audi RS6",
+      "Nissan GTR"
+    ],
+    "correctAnswerIndex": 1
+  },
+  {
+    "prompt": "Quel est son métier de rêve ?",
+    "answers": [
+      "Pilote automobile",
+      "Carrossier mécanicien",
+      "Peintre en carrosserie",
+      "Ingénieur mécanique"
+    ],
+    "correctAnswerIndex": 1
+  },
+  {
+    "prompt": "Quel est son jeu vidéo préféré ?",
+    "answers": [
+      "GTA",
+      "Call of Duty",
+      "FIFA",
+      "Fornite"
+    ],
+    "correctAnswerIndex": 0
+  },
+  {
+    "prompt": "Quelle est sa marque de vêtements préférée ?",
+    "answers": [
+      "Adidas",
+      "Puma",
+      "Lacoste",
+      "Nike"
+    ],
+    "correctAnswerIndex": 3
+  },
+  {
+    "prompt": "Quelle est son activité préférée ?",
+    "answers": [
+      "Jouer au baseball",
+      "Regarder des films",
+      "Les rassemblements de voitures",
+      "Faire de la méchanique"
+    ],
+    "correctAnswerIndex": 2
+  },
+  {
+    "prompt": "Quelle est sa boisson préférée ?",
+    "answers": [
+      "Coca Cherry",
+      "Red Bull",
+      "Ice Tea",
+      "Fanta"
+    ],
+    "correctAnswerIndex": 0
+  },
+  {
+    "prompt": "Quel est son animal préféré ?",
+    "answers": [
+      "Lapin",
+      "Chien",
+      "Serpent",
+      "Chat"
+    ],
+    "correctAnswerIndex": 1
+  },
+  {
+    "prompt": "Quelle race de chien préfère-t-il ?",
+    "answers": [
+      "Le Husky",
+      "Le Berger Allemand",
+      "Le Malinois",
+      "Le Kangal"
+    ],
+    "correctAnswerIndex": 3
+  },
+  {
+    "prompt": "Quelle autre langue parle Nathan ?",
+    "answers": [
+      "Anglais",
+      "Espagnol",
+      "Allemand",
+      "Italien"
+    ],
+    "correctAnswerIndex": 2
+  },
+  {
+    "prompt": "Quel est son parfum de glace préféré ?",
+    "answers": [
+      "Menthe / Chocolat",
+      "Vanille / Fraise",
+      "Chocolat / Pistache",
+      "Vanille / Vanille"
+    ],
+    "correctAnswerIndex": 0
+  },
+  {
+    "prompt": "Quel est son artiste musical préféré ?",
+    "answers": [
+      "Ninho",
+      "PLK",
+      "Jul",
+      "Gazon"
+    ],
+    "correctAnswerIndex": 1
+  },
+  {
+    "prompt": "Quelle est sa destination de rêve ?",
+    "answers": [
+      "Le Japon",
+      "Les États-Unis",
+      "Le Brésil",
+      "Le Canada"
+    ],
+    "correctAnswerIndex": 1
+  },
+  {
+    "prompt": "Quelle tâche ménagère déteste-t-il le plus ?",
+    "answers": [
+      "Passer l’aspirateur",
+      "Faire les poussières",
+      "Vider le lave-vaisselle",
+      "Faire la lessive"
+    ],
+    "correctAnswerIndex": 1
+  },
+  {
+    "prompt": "Quelle est sa pizza préférée ?",
+    "answers": [
+      "Margherita",
+      "Quatre fromages",
+      "Hawaïenne",
+      "Reine"
+    ],
+    "correctAnswerIndex": 1
+  },
+  {
+    "prompt": "Quel est son plat signature ?",
+    "answers": [
+      "Lasagnes maison",
+      "Pâtes carbonara",
+      "Pâtes à la sauce petits pois",
+      "Riz au poulet"
+    ],
+    "correctAnswerIndex": 2
+  },
+  {
+    "prompt": "Quel est son acteur préféré ?",
+    "answers": [
+      "Leonardo DiCaprio",
+      "Brad Pitt",
+      "Tom Cruise",
+      "Cillian Murphy"
+    ],
+    "correctAnswerIndex": 3
+  },
+  {
+    "prompt": "Quel est son plus grand rêve ?",
+    "answers": [
+      "Partir vivre aux États-Unis",
+      "Faire le tour du monde",
+      "Devenir pilote",
+      "Ouvrir un garage"
+    ],
+    "correctAnswerIndex": 0
+  },
+  {
+    "prompt": "Quel est son gâteau préféré ?",
+    "answers": [
+      "Mille-feuille",
+      "Tropézienne",
+      "Éclair au chocolat",
+      "Forêt noire"
+    ],
+    "correctAnswerIndex": 1
+  },
+  {
+    "prompt": "Quelle est sa saison préférée ?",
+    "answers": [
+      "Le printemps",
+      "L’automne",
+      "L’été",
+      "L’hiver"
+    ],
+    "correctAnswerIndex": 1
+  },
+  {
+    "prompt": "Quel est le premier sport qu’il a pratiqué ?",
+    "answers": [
+      "Football",
+      "Basketball",
+      "Tennis",
+      "Natation"
+    ],
+    "correctAnswerIndex": 0
   }
 ]
