@@ -59,8 +59,6 @@
                 </div>
               </div>
 
-              <ul id="playersList" class="player-list"></ul>
-
               <div class="action-row">
                 <button id="readyToggleButton" class="primary-button">Je suis pret</button>
               </div>
@@ -128,8 +126,16 @@
         </div>
 
         <div id="resultSection" class="stack-card hidden">
-          <p class="section-kicker">Resultat</p>
-          <h2>Fin de la question</h2>
+          <div class="question-head">
+            <div>
+              <p class="section-kicker">Transition</p>
+              <h2>Question suivante</h2>
+            </div>
+            <div class="timer-pill">
+              <span>Dans</span>
+              <strong id="resultTimerLabel">5</strong>
+            </div>
+          </div>
           <p id="correctAnswerLabel" class="question-prompt"></p>
         </div>
 

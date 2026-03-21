@@ -124,8 +124,16 @@
         </div>
 
         <div id="resultSection" class="stack-card hidden">
-          <p class="section-kicker">Resultat</p>
-          <h2>Fin de la question</h2>
+          <div class="question-head">
+            <div>
+              <p class="section-kicker">Transition</p>
+              <h2>Question suivante</h2>
+            </div>
+            <div class="timer-pill">
+              <span>Dans</span>
+              <strong id="resultTimerLabel">5</strong>
+            </div>
+          </div>
           <p id="correctAnswerLabel" class="question-prompt"></p>
         </div>
 
@@ -153,6 +161,12 @@
       </section>
     </main>
 
+    <audio id="waitingRoomAudio" preload="auto" loop playsinline>
+      <source src="/waiting_room.mp3" type="audio/mpeg" />
+    </audio>
+    <audio id="timerAudio" preload="auto" playsinline>
+      <source src="/timer_questions.mp3" type="audio/mpeg" />
+    </audio>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/admin.js"></script>
   </body>

@@ -8,7 +8,8 @@ const {
 
 const QUESTION_TIME_LIMIT_MS = 20000;
 const CORRECT_ANSWER_POINTS = 10;
-const RULES_SCREEN_MS = 40000;
+const RULES_SCREEN_MS = 30000;
+const QUESTION_TRANSITION_MS = 5000;
 const ROOM_ID_LENGTH = 8;
 const AVATAR_STYLE = "fun-emoji";
 
@@ -312,7 +313,12 @@ function finishQuestion(io, room) {
     }
   });
 
-  advanceToQuestion(io, room);
+  if (room.currentQuestionIndex + 1 >= room.questions.length) {
+    finishGame(io, room);
+    return;
+  }
+
+  startQuestionTransition(io, room);
 }
 
 function handleAdminJoin(io, socket, payload) {
@@ -527,6 +533,32 @@ function removeSocketFromRoom(io, socket, room) {
   delete room.answers[socket.id];
 
   emitFullState(io, room);
+}
+
+function startQuestionTransition(io, room) {
+  if (room.timer) {
+    clearTimeout(room.timer);
+  }
+
+  room.status = "result";
+  room.phaseEndsAt = Date.now() + QUESTION_TRANSITION_MS;
+
+  const hasNextQuestion = room.currentQuestionIndex + 1 < room.questions.length;
+  const payload = {
+    endsAt: room.phaseEndsAt,
+    durationMs: QUESTION_TRANSITION_MS,
+    nextQuestionIndex: hasNextQuestion ? room.currentQuestionIndex + 1 : null,
+    totalQuestions: room.questions.length,
+  };
+
+  io.to(getRoomChannel(room.id)).emit("question:transition", payload);
+  io.to(getAdminChannel(room.id)).emit("question:transition", payload);
+
+  emitFullState(io, room);
+
+  room.timer = setTimeout(() => {
+    advanceToQuestion(io, room);
+  }, QUESTION_TRANSITION_MS);
 }
 
 function registerSocketHandlers(io) {

@@ -34,7 +34,6 @@ const readyCountLabel = document.getElementById("readyCountLabel");
 const playerNameLabel = document.getElementById("playerNameLabel");
 const selectedAvatarImage = document.getElementById("selectedAvatarImage");
 const shuffleAvatarsButton = document.getElementById("shuffleAvatarsButton");
-const playersList = document.getElementById("playersList");
 const readyToggleButton = document.getElementById("readyToggleButton");
 
 const questionSection = document.getElementById("questionSection");
@@ -42,6 +41,7 @@ const rulesSection = document.getElementById("rulesSection");
 const resultSection = document.getElementById("resultSection");
 const endSection = document.getElementById("endSection");
 const rulesTimerLabel = document.getElementById("rulesTimerLabel");
+const resultTimerLabel = document.getElementById("resultTimerLabel");
 const questionIndexLabel = document.getElementById("questionIndexLabel");
 const totalQuestionsLabel = document.getElementById("totalQuestionsLabel");
 const timerPill = document.querySelector(".timer-pill");
@@ -172,35 +172,6 @@ function renderShell() {
   gameView.classList.toggle("hidden", !gameActive);
 }
 
-function renderPlayers() {
-  playersList.innerHTML = "";
-
-  state.players.forEach((player) => {
-    const item = document.createElement("li");
-    const badges = [
-      player.isReady
-        ? '<span class="player-status player-status-ready">pret</span>'
-        : '<span class="player-status player-status-waiting">en attente</span>',
-    ];
-
-    if (player.id === state.playerId) {
-      badges.push('<span class="player-status player-status-self">toi</span>');
-    }
-
-    item.className = "player-row";
-    item.innerHTML = `
-      <div class="player-avatar">
-        <img src="${getAvatarUrl(player.avatar, 64)}" alt="" />
-      </div>
-      <div class="player-main">
-        <strong>${player.name}</strong>
-        <div class="player-status-row">${badges.join("")}</div>
-      </div>
-    `;
-    playersList.appendChild(item);
-  });
-}
-
 function renderLobby() {
   const currentPlayer = getCurrentPlayer();
   const joined = Boolean(currentPlayer);
@@ -234,7 +205,6 @@ function renderLobby() {
   }
 
   renderAvatarPicker();
-  renderPlayers();
 
   readyToggleButton.textContent = currentPlayer.isReady ? "Je ne suis plus pret" : "Je suis pret";
 }
@@ -315,6 +285,27 @@ function renderRules(endsAt) {
 
   updateRulesTimer();
   state.timerInterval = window.setInterval(updateRulesTimer, 250);
+}
+
+function renderQuestionTransition(endsAt, nextQuestionIndex, totalQuestions) {
+  resetGamePanels();
+  resultSection.classList.remove("hidden");
+  correctAnswerLabel.textContent =
+    nextQuestionIndex === null
+      ? "Classement final dans 5 secondes..."
+      : `Question ${nextQuestionIndex + 1}/${totalQuestions} dans 5 secondes...`;
+  renderShell();
+
+  window.clearInterval(state.timerInterval);
+
+  function updateResultTimer() {
+    const remainingMs = Math.max(0, endsAt - getServerNow());
+    const remainingSeconds = Math.ceil(remainingMs / 1000);
+    resultTimerLabel.textContent = String(remainingSeconds);
+  }
+
+  updateResultTimer();
+  state.timerInterval = window.setInterval(updateResultTimer, 250);
 }
 
 function renderQuestion(questionIndex, totalQuestions, question, endsAt) {
@@ -422,6 +413,12 @@ socket.on("room:state", (payload) => {
 
   if (payload.status === "rules" && payload.phaseEndsAt) {
     renderRules(payload.phaseEndsAt);
+  } else if (payload.status === "result" && payload.phaseEndsAt) {
+    renderQuestionTransition(
+      payload.phaseEndsAt,
+      payload.currentQuestionIndex + 1 < payload.totalQuestions ? payload.currentQuestionIndex + 1 : null,
+      payload.totalQuestions
+    );
   }
 });
 
@@ -456,6 +453,12 @@ socket.on("rules:show", (payload) => {
   syncServerClock(1);
   state.roomStatus = "rules";
   renderRules(payload.endsAt);
+});
+
+socket.on("question:transition", (payload) => {
+  syncServerClock(1);
+  state.roomStatus = "result";
+  renderQuestionTransition(payload.endsAt, payload.nextQuestionIndex, payload.totalQuestions);
 });
 
 socket.on("answer:selected", (payload) => {
